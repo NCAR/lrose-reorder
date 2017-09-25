@@ -1,0 +1,2 @@
+nice find . '(' -name 'Makefile.in' -o -name 'makefile.in' ')' \
+         -user $USER -type f -print -exec \rm '{}' \;
