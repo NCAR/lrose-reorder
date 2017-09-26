@@ -44,17 +44,11 @@ compile
 
 
 aclocal.m4
-ar-lib
 autom4te.cache
-config.guess
 config.h
 config.log
 config.status
-config.sub
 config/
-depcomp
-install-sh
-missing
 stamp-h1
 
 .sconsign.dblite
