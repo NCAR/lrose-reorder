@@ -1,34 +1,43 @@
-QUICKSTART INSTALL
-==================
+#! /bin/sh
 
-This is a quick guide to building and installing.
+# QUICKSTART INSTALL
+# ==================
+#
+# This is a quick guide to building and installing.
+#
+# Assumes install in ~/reorder.
+#
+# See README for installing required 32-bit packages.
+#
+# Quickstart install - in ~/reorder
+# =================================
 
-Assumes install in ~/reorder.
-
-See README for installing required 32-bit packages.
-
-Quickstart install - in ~/reorder
-=================================
+# make reorder dir
 
   mkdir ~/reorder
   cd ~/reorder
+
+# clone the git repositories
+
   git clone https://github.com/ncar/lrose-netcdf
   git clone https://github.com/ncar/lrose-reorder
-  cd lrose-netcdf/
+
+# build and install netcdf into ~/reorder
+
+  cd ~/reorder/lrose-netcdf/
   ./build_and_install_netcdf.m32 -x ~/reorder/
-  cd ../lrose-reorder
-  setenv CFLAGS -I${home}/reorder/include
-  setenv LDFLAGS -L${home}/reorder/lib
+
+# build and install reorder binaries
+
+  cd ~/reorder/lrose-reorder
   ./configure --prefix=${home}/reorder
   make install
 
-Binaries will be in:
+# =================================
+# Binaries will be in:
+#
+#  ~/reorder/bin
 
-  ~/reorder/bin
-
-To run:
-
-  setenv LD_LIBRARY_PATH ~/reorder/lib
 
 
 
