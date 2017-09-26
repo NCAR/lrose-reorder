@@ -2,14 +2,18 @@
 # makefile.am template for automake
 ###############################################
 
-# compile flags - include header subdirectory
+# compile flags
 
-AM_CFLAGS = -I. -I../includes -DNETCDF -m32
-AM_FFLAGS = -I. -I../includes -m32
+AM_CFLAGS = -I.
+AM_CFLAGS += -I../includes
+AM_CFLAGS += -I../../../include
+AM_CFLAGS += -I$(prefix)/include
+AM_CFLAGS += -m32
+
+AM_FFLAGS = $(AM_CFLAGS)
 AM_CXXFLAGS = $(AM_CFLAGS)
-AM_LDFLAGS = -L.
 
-# target libraries
+# target library
 
 lib_LIBRARIES = libreorder_s2.a
 

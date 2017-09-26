@@ -18,7 +18,7 @@
 # makefile.am template for automake
 ###############################################
 
-# compile flags - include header subdirectory
+# compile flags
 
 VPATH = @srcdir@
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
@@ -308,12 +308,12 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AM_CFLAGS = -I. -I../includes -DNETCDF -m32
-AM_FFLAGS = -m32
+AM_CFLAGS = -I. -I../includes -I../../../include -I$(prefix)/include \
+	-m32
+AM_FFLAGS = $(AM_CFLAGS)
 AM_CXXFLAGS = $(AM_CFLAGS)
-AM_LDFLAGS = -L.
 
-# target libraries
+# target library
 lib_LIBRARIES = libreorder_qreo.a
 
 # sources

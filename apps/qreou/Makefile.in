@@ -18,7 +18,7 @@
 # makefile.am template for automake
 ###############################################
 
-# compile flags - include header subdirectory
+# compile flags
 
 VPATH = @srcdir@
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
@@ -276,11 +276,14 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AM_CFLAGS = -I. -I../includes -m32
-AM_FFLAGS = -I. -I../includes -m32
+AM_CFLAGS = -I. -I../includes -I../../../include -I$(prefix)/include \
+	-m32
+AM_FFLAGS = $(AM_CFLAGS)
 AM_CXXFLAGS = $(AM_CFLAGS)
+
+# linker flags
 AM_LDFLAGS = -L. -L../../libs/dap -L../../libs/qreo -L../../libs/s2 \
-	-L$(prefix)/lib
+	-L../../../lib -L$(prefix)/lib -m32 -Wl,-rpath=$(prefix)/lib
 LDADD = -lreorder_qreo -lreorder_dap -lreorder_s2 -lnetcdf -lhdf5_hl \
 	-lhdf5 -lz -lbz2
 

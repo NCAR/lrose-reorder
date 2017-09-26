@@ -19,10 +19,10 @@ export PATH=.:/bin:/usr/bin:/sbin:/usr/sbin:/usr/bin/X11:/usr/local/bin:/usr/loc
 
 function usage() {
     echo
-    echo "Usage: run_autoconf [ -debug -h ]"
+    echo "Usage: run_autoconf [ -verbose -h ]"
     echo
     echo "  -h:     produce this usage list"
-    echo "  -debug: turn debugging on"
+    echo "  -verbose: turn debugging on"
     echo
 }
 
@@ -42,24 +42,28 @@ then
     exit 0
 fi
 
-debug=false
-if [ "$1" == -debug -o "$2" == -debug ] 
+verbose=false
+if [ "$1" == -verbose -o "$2" == -verbose ] 
 then
-    debug=true
+    verbose=true
 fi
 
 # Run the scripts for autoconf
 
-if [ "$debug" == true ] 
+if [ "$verbose" == true ] 
 then
   aclocal --verbose
   autoheader --verbose
   automake --add-missing --verbose
   autoconf --verbose
 else
+  echo "running aclocal ...."
   aclocal
+  echo "running autoheader ...."
   autoheader
+  echo "running automake ...."
   automake --add-missing
+  echo "running autoconf ...."
   autoconf
 fi
 
