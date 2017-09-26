@@ -181,7 +181,6 @@ EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
 GREP = @GREP@
-HDF5DIR = @HDF5DIR@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -193,7 +192,6 @@ LIBS = @LIBS@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
-NETCDFDIR = @NETCDFDIR@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
@@ -266,7 +264,6 @@ AM_FFLAGS = -I. -I../includes -m32
 AM_CXXFLAGS = $(AM_CFLAGS)
 AM_LDFLAGS = -L. -L../../libs/dap -L../../libs/qreo -L../../libs/s2 \
 	-L$(prefix)/lib
-#LDADD += -ludunits2
 LDADD = -lreorder_qreo -lreorder_dap -lreorder_s2 -lnetcdf -lhdf5_hl \
 	-lhdf5 -lz -lbz2
 

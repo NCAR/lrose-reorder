@@ -21,10 +21,8 @@ LDADD += -lreorder_s2
 LDADD += -lnetcdf
 LDADD += -lhdf5_hl
 LDADD += -lhdf5
-#LDADD += -ludunits2
 LDADD += -lz
 LDADD += -lbz2
-#LDADD += -lexpat
 
 # target libraries
 

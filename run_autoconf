@@ -1,11 +1,65 @@
-#!/bin/sh --
+#!/bin/bash
 # 
+#--------------------------------------------------------------------
+#
+# script to run automake tools
+#
+# Mike Dixon, EOL, NCAR, Boulder, CO, USA
+# Sept 2017
+#
+#--------------------------------------------------------------------
+
+# set the path
+
+export PATH=.:/bin:/usr/bin:/sbin:/usr/sbin:/usr/bin/X11:/usr/local/bin:/usr/local/sbin
+
+#--------------------------------------------------------------------
+# usage function
+#
+
+function usage() {
+    echo
+    echo "Usage: run_autoconf [ -debug -h ]"
+    echo
+    echo "  -h:     produce this usage list"
+    echo "  -debug: turn debugging on"
+    echo
+}
+
+#--------------------------------------------------------------------
+# check args
+
+if [ $# -gt 2 ]
+then
+    echo "ERROR - bad command line"
+    usage
+    exit -1
+fi
+
+if [ "$1" == -h -o "$2" == -h ] 
+then
+    usage
+    exit 0
+fi
+
+debug=false
+if [ "$1" == -debug -o "$2" == -debug ] 
+then
+    debug=true
+fi
+
 # Run the scripts for autoconf
 
-aclocal
-autoheader
-automake --add-missing
-autoconf
-
-
+if [ "$debug" == true ] 
+then
+  aclocal --verbose
+  autoheader --verbose
+  automake --add-missing --verbose
+  autoconf --verbose
+else
+  aclocal
+  autoheader
+  automake --add-missing
+  autoconf
+fi
 

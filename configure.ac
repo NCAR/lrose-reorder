@@ -38,43 +38,36 @@ AC_CONFIG_SRCDIR([libs/dap/qdap.F])
 #MSG_NOTICE([checking user options])
 
 # Did the user specify a location for the HDF5 library?
-AC_MSG_CHECKING([whether a location for the HDF5 library was specified])
-AC_ARG_WITH([hdf5],
-              [AS_HELP_STRING([--with-hdf5=<directory>],
-                              [Specify location of HDF5 library. Configure will \
-                              expect to find subdirs include and lib.])],
-            [HDF5DIR=$with_hdf5])
-AC_MSG_RESULT([$HDF5DIR])
-AC_SUBST(HDF5DIR, [$HDF5DIR])
+#AC_MSG_CHECKING([whether a location for the HDF5 library was specified])
+#AC_ARG_WITH([hdf5],
+#              [AS_HELP_STRING([--with-hdf5=<directory>],
+#                              [Specify location of HDF5 library. Configure will \
+#                              expect to find subdirs include and lib.])],
+#            [HDF5DIR=$with_hdf5])
+#AC_MSG_RESULT([$HDF5DIR])
+#AC_SUBST(HDF5DIR, [$HDF5DIR])
 
 # Did the user specify a location for the NETCDF library?
-AC_MSG_CHECKING([whether a location for the NETCDF library was specified])
-AC_ARG_WITH([netcdf],
-              [AS_HELP_STRING([--with-netcdf=<directory>],
-                              [Specify location of NETCDF library. Configure will \
-                              expect to find subdirs include and lib.])],
-            [NETCDFDIR=$with_netcdf])
-AC_MSG_RESULT([$NETCDFDIR])
-AC_SUBST(NETCDFDIR, [$NETCDFDIR])
-
-# 32-but build
-
-CFLAGS = "-m32 -DNETCDF"
-FFLAGS = "-m32 -DNETCDF"
+#AC_MSG_CHECKING([whether a location for the NETCDF library was specified])
+#AC_ARG_WITH([netcdf],
+#              [AS_HELP_STRING([--with-netcdf=<directory>],
+#                              [Specify location of NETCDF library. Configure will \
+#                              expect to find subdirs include and lib.])],
+#            [NETCDFDIR=$with_netcdf])
+#AC_MSG_RESULT([$NETCDFDIR])
+#AC_SUBST(NETCDFDIR, [$NETCDFDIR])
 
 # Add the HDF5 directory to includes and link flags
-if test ! "x$HDF5DIR" = x; then
-   LDFLAGS = "${LDFLAGS} -L${HDF5DIR}/lib"
-   CPPFLAGS = "${CPPFLAGS} -I${HDF5DIR}/include"
-fi    
+#if test ! "x$HDF5DIR" = x; then
+#   LDFLAGS = "${LDFLAGS} -L${HDF5DIR}/lib"
+#   CPPFLAGS = "${CPPFLAGS} -I${HDF5DIR}/include"
+#fi    
 
 # Add the NETCDF directory to includes and link flags
-if test ! "x$NETCDFDIR" = x; then
-   CFLAGS = " -DNETCDF"
-   FFLAGS = " -DNETCDF"
-   LDFLAGS = "${LDFLAGS} -L${NETCDFDIR}/lib"
-   CPPFLAGS = "${CPPFLAGS} -I${NETCDFDIR}/include"
-fi    
+#if test ! "x$NETCDFDIR" = x; then
+#   LDFLAGS = "${LDFLAGS} -L${NETCDFDIR}/lib"
+#   CPPFLAGS = "${CPPFLAGS} -I${NETCDFDIR}/include"
+#fi    
 
 # Checks for programs.
 AC_PROG_CC
@@ -115,45 +108,3 @@ AC_CONFIG_FILES([
 ])
 
 AC_OUTPUT
-
-
-
-#AC_MSG_RESULT( NETCDFINCS: $NETCDFINCS )
-
-#if test -z "$NETCDFLIBS" ; then
-#if test -n "$NETCDFLIBDIR"; then
-#   NETCDFLIBS="-L$NETCDFLIBDIR -lnetcdf -lnetcdff -ludunits2 -lhdf5 -lhdf5_hl -lz"
-#else
-#   NETCDFLIBS="-lnetcdf -lnetcdff -ludunits2 -lhdf5 -lhdf5_hl -lz"
-#fi
-#fi
-#AC_MSG_RESULT( NETCDFLIBS: $NETCDFLIBS )
-
-# We don't use any C checks at the moment, but without it autoconf warns
-# about the existence of C source files without a C compiler check.  So
-# setup the C compiler but without any of the usual checks.  (This were
-# included by the initial autoscan.)
-#AC_PROG_CC
-# Checks for header files.
-#AC_LANG([C])
-#AC_CHECK_HEADERS([fcntl.h malloc.h memory.h netinet/in.h stdlib.h string.h strings.h sys/param.h sys/time.h unistd.h])
-
-# Checks for typedefs, structures, and compiler characteristics.
-#AC_TYPE_OFF_T
-#AC_TYPE_PID_T
-#AC_TYPE_SIZE_T
-
-# Checks for library functions.
-#AC_FUNC_MALLOC
-#AC_FUNC_MKTIME
-#AC_FUNC_REALLOC
-#AC_FUNC_WAIT3
-#AC_CHECK_FUNCS([atexit bzero floor ftruncate gethostname gettimeofday memmove memset modf pow select strtoul])
-
-#AM_CONDITIONAL([MAKE_WITH_NETCDF], [test "$with_netcdf" != no])
-
-#AC_SUBST(NETCDFINCDIR)
-#AC_SUBST(NETCDFLIBDIR)
-#AC_SUBST(NETCDFLIBS)
-#AC_SUBST(NETCDFINCS)
-
