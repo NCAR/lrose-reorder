@@ -17,10 +17,18 @@ Quickstart install - in ~/reorder
   cd lrose-netcdf/
   ./build_and_install_netcdf.m32 -x ~/reorder/
   cd ../lrose-reorder
+  setenv CFLAGS -I${home}/reorder/include
+  setenv LDFLAGS -L${home}/reorder/lib
   ./configure --prefix=${home}/reorder
   make install
 
 Binaries will be in:
 
   ~/reorder/bin
+
+To run:
+
+  setenv LD_LIBRARY_PATH ~/reorder/lib
+
+
 
