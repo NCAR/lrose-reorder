@@ -227,7 +227,7 @@ reonetcdf_(prefix, np)
     /* c...mark */
     int ii, nn, nfields=0;	/* just use the fields and names as is */
     int vol_num=1;
-    char file_name_prefix[128], str[128], *a, *b, *c, *strrchr();
+    char file_name_prefix[128], str[128], *a, *b, *c;
     char **src_ids, **dst_ids;
     float rr_earth=6300.;
     struct ced_fixes cf;
@@ -569,7 +569,7 @@ cedopn_(name,n,isize)
   char *name;
   int *n, *isize;
 {
-    char *getenv(), *strchr(), real_name[222];
+    char real_name[222];
     int ii, jj, kk, rslt;
     size_t sof, offs;
     char *a=name;
@@ -644,7 +644,7 @@ cedopn_(name,n,isize)
 opnscr_(dummy1, lenrec, dummy2 )
   int *lenrec, *dummy1, *dummy2;
 {
-    char *getenv (), pid[12];
+    char pid[12];
     int getpid();
 
     sprintf(pid, "%d", getpid());

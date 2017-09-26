@@ -1,4 +1,4 @@
 # Automake template for reorder
 
-SUBDIRS = Libraries Applications
+SUBDIRS = libs apps
 

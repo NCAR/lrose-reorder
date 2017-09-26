@@ -32,5 +32,5 @@ env.installLocalBin = '#/bin'
 
 Export('env')
 
-SConscript('Libraries/SConscript')
-SConscript('Applications/SConscript')
+SConscript('libs/SConscript')
+SConscript('apps/SConscript')

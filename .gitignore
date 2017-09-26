@@ -37,9 +37,7 @@ lib
 .dirstamp
 .deps
 makefile
-makefile.in
 Makefile
-Makefile.in
 __makefile.template
 .libs
 compile
@@ -58,3 +56,8 @@ depcomp
 install-sh
 missing
 stamp-h1
+
+.sconsign.dblite
+
+apps/qreod/qreod
+apps/qreou/qreou

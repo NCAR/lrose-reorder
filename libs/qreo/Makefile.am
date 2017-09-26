@@ -4,7 +4,7 @@
 
 # compile flags - include header subdirectory
 
-AM_CFLAGS = -I. -I../publicIncludes -m32
+AM_CFLAGS = -I. -I../includes -DNETCDF -m32
 AM_FFLAGS = -m32
 AM_CXXFLAGS = $(AM_CFLAGS)
 AM_LDFLAGS = -L.

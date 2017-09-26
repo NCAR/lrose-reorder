@@ -78,13 +78,13 @@ See logmsg.5 for details of significant changes as well as what is detailed
 below. 
 --------------------------------------------------------------------------
 
-1. Libraries/qreo/qreo1.F
+1. libs/qreo/qreo1.F
       routine reo prints 'qreo1.F--LINUX VERSION 3.10 January 2015'
 
-2. Libraries/dap/qdap.F
+2. libs/dap/qdap.F
       routine accver prints 'qdap.F--LINUX VERSION 3.10 January 2015'
 
-3. Libraries/s2/SConscript
+3. libs/s2/SConscript
       removed 'ncurses' from env.AppendUnique(LIBS       = ['m','ncurses'])
                              env.AppendUnique(LIBS       = ['m'])
       since it is not needed.  Reorder will now build as 32-bit executable
@@ -99,10 +99,10 @@ Significant changes were made to how Reorder populates the output XYZ grid
 and to what is included in the calculation of heights (MSL).
 --------------------------------------------------------------------------
 
-1. Libraries/qreo/qreo1.F
+1. libs/qreo/qreo1.F
       routine reo prints 'qreo1.F--LINUX VERSION 3.00 November 2011'
 
-2. Libraries/dap/qdap.F
+2. libs/dap/qdap.F
       routine accver prints 'qdap.F--LINUX VERSION 3.00 November 2011'
 
 3. For now bounds checking (env.AppendUnique(FORTRANFLAGS = ['-fbounds-check'])
@@ -172,9 +172,9 @@ and to what is included in the calculation of heights (MSL).
    Reorder are calls from reo.  This list of those routines and
    their functions are listed below.
 
-   a. The main program (qreoroot.F) in either ./Applications/qreod 
-      (Dorade) or ./Applications/qreou (Universal) format calls the
-      overall driver subroutine reo in ./Libraries/qreo/qreo1.F that
+   a. The main program (qreoroot.F) in either ./apps/qreod 
+      (Dorade) or ./apps/qreou (Universal) format calls the
+      overall driver subroutine reo in ./libs/qreo/qreo1.F that
       loops over all beams within a volume with START and STOP times
       specified by the user.
    b. The list of most-relevant subroutines called from subroutine
@@ -258,7 +258,7 @@ and to what is included in the calculation of heights (MSL).
        documentation files copied from 
 
 1.40a  Chris Burghart:
-       Fixed a bug in Libraries/qreo/qreo2.F that shows up when compiled
+       Fixed a bug in libs/qreo/qreo2.F that shows up when compiled
        under gfortran and involves xmin, ymin, and zmin inside the filter 
        subroutine contained in qreo2.F (Tues 14 Jul 2009 email).  These
        variables need to be "saved" or else the grid will be empty.  Another 
@@ -280,7 +280,7 @@ and to what is included in the calculation of heights (MSL).
        now in the trunk directory inside the scons stuff.
 
 1.38   Dennis Flanigan:
-       Added cvt_toLatLon code to ./Reorder/trunk/Libraries/qreo/xcedcio.c
+       Added cvt_toLatLon code to ./Reorder/trunk/libs/qreo/xcedcio.c
        in response to Sandra Yuter's concerns about the conversions to lat/lon
        at latitudes furhter from the equator.  Her shipboard dataset is actually
        from the southern hemisphere.  This change was done in going from 1.37 to

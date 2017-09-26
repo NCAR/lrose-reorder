@@ -636,10 +636,10 @@ c
 c     For each ray get (azz,ell,fx,zprf) from functions in
 c     either
 c        UF: 
-c           ./Applications/qreou/qufap.F (compiled and linked for qreou)
+c           ./apps/qreou/qufap.F (compiled and linked for qreou)
 c     or
 c        DORADE: 
-c           ./Libraries/dap/qdap.F (compiled and linked for qreod)
+c           ./libs/dap/qdap.F (compiled and linked for qreod)
 c
 c     These functions are called here for both UF and DORADE formats.
 c     These housekeeping words are inside the kbuf integer array.

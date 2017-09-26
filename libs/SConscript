@@ -1,5 +1,5 @@
 
-SConscript('publicIncludes/SConscript')
+SConscript('includes/SConscript')
 SConscript('s2/SConscript')
 SConscript('dap/SConscript')
 SConscript('qreo/SConscript')

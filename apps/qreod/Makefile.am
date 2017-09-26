@@ -4,18 +4,27 @@
 
 # compile flags - include header subdirectory
 
-AM_CFLAGS = -I. -I../publicIncludes -m32
-AM_FFLAGS = -I. -I../publicIncludes -m32
+AM_CFLAGS = -I. -I../includes -m32
+AM_FFLAGS = -I. -I../includes -m32
 AM_CXXFLAGS = $(AM_CFLAGS)
 
 AM_LDFLAGS  = -L.
-AM_LDFLAGS += -L../../Libraries/dap
-AM_LDFLAGS += -L../../Libraries/qreo
-AM_LDFLAGS += -L../../Libraries/s2
+AM_LDFLAGS += -L../../libs/dap
+AM_LDFLAGS += -L../../libs/qreo
+AM_LDFLAGS += -L../../libs/s2
+AM_LDFLAGS += -L$(prefix)/lib
 
 LDADD = -lreorder_qreo
 LDADD += -lreorder_dap
 LDADD += -lreorder_s2
+
+LDADD += -lnetcdf
+LDADD += -lhdf5_hl
+LDADD += -lhdf5
+#LDADD += -ludunits2
+LDADD += -lz
+LDADD += -lbz2
+#LDADD += -lexpat
 
 # target libraries
 

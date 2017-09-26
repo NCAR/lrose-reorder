@@ -32,7 +32,7 @@ AM_INIT_AUTOMAKE([-Wall foreign subdir-objects])
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 
 # Check for the existance of this file before proceeding.
-AC_CONFIG_SRCDIR([Libraries/dap/qdap.F])
+AC_CONFIG_SRCDIR([libs/dap/qdap.F])
 
 # user options
 #MSG_NOTICE([checking user options])
@@ -105,13 +105,13 @@ AC_CHECK_FUNCS([floor gettimeofday memset modf pow strerror])
 
 AC_CONFIG_FILES([
   Makefile
-  Libraries/Makefile
-  Libraries/dap/Makefile
-  Libraries/qreo/Makefile
-  Libraries/s2/Makefile
-  Applications/Makefile
-  Applications/qreod/Makefile
-  Applications/qreou/Makefile
+  libs/Makefile
+  libs/dap/Makefile
+  libs/qreo/Makefile
+  libs/s2/Makefile
+  apps/Makefile
+  apps/qreod/Makefile
+  apps/qreou/Makefile
 ])
 
 AC_OUTPUT
