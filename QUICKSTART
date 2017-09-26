@@ -14,29 +14,29 @@
 
 # make reorder dir
 
-  mkdir ~/reorder
-  cd ~/reorder
+  mkdir ${HOME}/reorder
+  cd ${HOME}/reorder
 
 # clone the git repositories
 
   git clone https://github.com/ncar/lrose-netcdf
   git clone https://github.com/ncar/lrose-reorder
 
-# build and install netcdf into ~/reorder
+# build and install netcdf into ${HOME}/reorder
 
-  cd ~/reorder/lrose-netcdf/
-  ./build_and_install_netcdf.m32 -x ~/reorder/
+  cd ${HOME}/reorder/lrose-netcdf/
+  ./build_and_install_netcdf.m32 -x ${HOME}/reorder/
 
 # build and install reorder binaries
 
-  cd ~/reorder/lrose-reorder
+  cd ${HOME}/reorder/lrose-reorder
   ./configure --prefix=${HOME}/reorder
   make install
 
 # =================================
 # Binaries will be in:
 #
-#  ~/reorder/bin
+#  ${HOME}/reorder/bin
 
 
 
