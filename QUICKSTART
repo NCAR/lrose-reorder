@@ -30,7 +30,7 @@
 # build and install reorder binaries
 
   cd ~/reorder/lrose-reorder
-  ./configure --prefix=${home}/reorder
+  ./configure --prefix=${HOME}/reorder
   make install
 
 # =================================
