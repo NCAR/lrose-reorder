@@ -36,6 +36,23 @@ and use apt-get to install the following:
                    libstdc++5:i386 \
                    libstdc++6:i386
 
+Quickstart install - in ~/reorder
+=================================
+
+  mkdir ~/reorder
+  cd ~/reorder
+  git clone https://github.com/ncar/lrose-netcdf
+  git clone https://github.com/ncar/lrose-reorder
+  cd lrose-netcdf/
+  ./build_and_install_netcdf.m32 -x ~/reorder/
+  cd ../lrose-reorder
+  ./configure --prefix=${home}/reorder
+  make install
+
+Binaries will be in:
+
+  ~/reorder/bin
+
 Choose a location for your install
 ==================================
 
