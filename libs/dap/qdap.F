@@ -282,8 +282,6 @@ c  extract the start and stop times
         endif
 c
 c  get set to access the data and read the first record
-	print *,'Get set to access input data and read 1st record'
-        print *,'Calling mountd from qdap-setcat routine'
         call mountd( ierr )
         if( ierr .ne. 0 ) then
           go to 90
@@ -332,7 +330,6 @@ c
 c       
   11    continue
     	state = dap_next_ray( lundat, kbuf )
-c        print *,'qdap: in setray: state=',state,END_OF_TIME_SPAN
 c       
     	if(state .eq. END_OF_TIME_SPAN ) then
     	    ierr = 999
@@ -354,7 +351,7 @@ C           Unix DEPENDENT CODE
 c-----------------------------------------------------------------------
     	subroutine accver()
 c   dump out the current access version date
-        call dmplin( 'qdap.F--LINUX VERSION 2.43 January 2012' , 0 )
+        call dmplin( 'qDAP unix VERSION Novermber 1997' , 0 )
     	return
     	end
 c-----------------------------------------------------------------------
@@ -374,39 +371,29 @@ c
 c
         character*88 text
         logical ueof
-
-c       LJM 9/11/2011 - increased dimensions mxr,mxd,mxi
 c
-c       parameter(mxr=4,mxd=40,mxi=40)
-        parameter(mxr=6,mxd=80,mxi=60)
-
-    	integer control_string(1000), radar_name(mxr)
-    	integer directory(mxd)
-    	integer input_file(mxi)
+    	integer control_string(1000), radar_name(4)
+    	integer directory(40)
+    	integer input_file(40)
     	integer tm1, tm2
 c
 c
     	ierr = 0
 c
 c   convert times to unix time
-    	call time2unix( ccstm1, tm1 )
-    	call time2unix( ccstm2, tm2 )
-c-------print *,'qdap-mountd: tim1,tim2=',tim1,tim2
-c-------print *,'qdap-mountd: ccstm1,ccstm2=',ccstm1,ccstm2
+    	call time2unix( ccstm1, tm1 )    	
+    	call time2unix( ccstm2, tm2 )    	
 c 
-c-------foflib.F: subroutine attarg( ibuf, ith, jth, nth, c1, nchar )
         in = indexa( ufcs, 1, ncs, 4, 'INSTRUMENT' )
         if( in .gt. 0 ) then
             call attarg( ufcs, in, ncs, 1, i1, ni )
         endif
-        len_string=GETLEN(ufcs)
-c-------print *,'qdap-mountd: in,ni,radar_name=',in,ni,radar_name
-c-------foflib.F: subroutine copycn( chs, ith, n, kbuf, jth )
+
     	if( in .gt.0 .and. ni .gt. 0 ) then    
-           call copycn( ufcs, i1, ni, radar_name, 1 )
+    	    call copycn( ufcs, i1, ni, radar_name, 1 )
     	else
-            ni = 4
-            call copycn( 'NONE', 1, ni, radar_name, 1 )
+    	    ni = 4
+    	    call copycn( 'NONE', 1, ni, radar_name, 1 )
     	endif
     	call put8( radar_name, ni+1, 0 )
 c
@@ -414,10 +401,8 @@ c   open the file and read to the first usable ray
 c
         in = indexa( ufcs, 1, ncs, 4, 'INPUT' )
         dir = indexa( ufcs, 1, ncs, 4, 'DIRECTORY' )
-        print *,'qdap-mountd: ncs,in,dir=',ncs,in,dir
 c
     	if(in .gt. 0 ) then
-            print *,'mountd: calling attarg since in.gt.0'
             call attarg( ufcs, in, ncs, 1, i1, ni )
     	    call copycn( ufcs, i1, ni, input_file, 1 )
     	    call put8( input_file, ni+1, 0 )
@@ -429,32 +414,15 @@ c
                 go to 90
             endif
     	elseif(dir .gt. 0 ) then
-           print *,'mountd: calling attarg since dir.gt.0'
-c           subroutine attarg( ibuf, ith, jth, nth, c1, nchar )
             call attarg( ufcs, dir, ncs, 1, i1, ni )
-            print *,
-     +       'mountd:after call attarg dir,ncs,1,i1,ni=',
-     +       dir,ncs,1,i1,ni
-            call flush(6)
-  	    if( ni .gt. 0 ) then
+    	    if( ni .gt. 0 ) then
     	    	call copycn( ufcs, i1, ni, directory, 1 )
-c---------------print *,'mountd: ni,directory=',ni,directory(1:ni),
-c     +               radar_name
-c                call flush(6)
     	    	call put8( directory, ni+1, 0 )
     	    	ierr = dap_mnt_s( directory, radar_name
      +	    	    , tm1, tm2, ivol, iscan, irec )
-                print *,'mountd: after call dap_mnt_s ierr=',ierr
-                print *,
-     +               'mountd: after call dap_mnt_s ivol,iscan,irec=',
-     +               ivol,iscan,irec
-                call flush(6)
     	    	if(ierr .eq. 0 ) then
 c  read in the first record
-                   print *,'qdap-mountd: Read in the first record'
-                   print *,'qdap-mountd: Before call setray'
     	    	    call setray( buffer, 1, ierr )
-                    print *,'qdap-mountd: After call setray, ierr=',ierr
             	    if( ierr  .ne. 0 ) then
     	    	    	write(*,*)'Error in mountd on first read...err: '
      +	    	    	    , ierr
@@ -469,8 +437,8 @@ c  read in the first record
     	endif
 c
     	if(ierr .ne. 0 ) then
-    	    write(*,*) 'Missing directory or input attribute!',ierr
-            go to 90
+    	    write(*,*) 'Missing directory or input attribute!'
+    	    return
     	endif
 c
 c

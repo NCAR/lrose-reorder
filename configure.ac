@@ -6,7 +6,7 @@
 # init
 
 AC_PREREQ([2.50])
-AC_INIT([reorder], [1.38], [http://github.com/NCAR/lrose-reorder])
+AC_INIT([reorder], [1.40], [http://github.com/NCAR/lrose-reorder])
 
 # Create the VERSION file, which contains the package version from
 # AC_INIT.

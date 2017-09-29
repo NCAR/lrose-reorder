@@ -1,16 +1,11 @@
 c-------------------------------------------------------------------------
     	block data qreo1
 c
-c       Increased mxfld from 16 to 30 - LJM 06/09/2010
-c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
-c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
-c       Increased maxval from 500 to 2000 - LJM 06/28/2010
-c
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
         parameter( inull=-32768 )
-        parameter( mxfld=30, mxsfld=120  )
-        parameter( mxcomp=50, mxtot=mxfld+mxsfld  )
-        parameter( maxval=2000 )
+        parameter( mxfld=16, mxsfld=20  )
+        parameter(  mxcomp=8, mxtot=mxfld+mxsfld  )
+        parameter( maxval=500 )
 c
         integer tref
         common  / datset /      slong,          slati,          salti
@@ -130,13 +125,14 @@ c
 c----------------------------------------------------------------------
       subroutine reo( butter, lenbuf )
 c===========================================================================
-c___qcom
+c___qcommon.for
+c
 
-c       maxcart output set to 4001, that is nx * ny * nz <= maxcart
-    	parameter( maxcart=4001, sizcart=2048 )
+c       max cart output set to 4001, that is nx * ny * nz <= maxcart
+    	parameter( maxcart=4001, sizcart=1024 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
-        parameter( maxval=2000 )
+        parameter( maxval=500 )
         parameter( maxspc=maxcart*sizcart )
 
 c       Max gates is 2048
@@ -144,23 +140,13 @@ c       Max gates is 2048
         parameter( mxg3=3*maxgt )
 
 c       Max fields set to 16, max field for scratch is 20  -DFF 3/17
-c       Increased mxfld from 16 to 30 - LJM 06/09/2010
-c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
-c       Increased maxval from 500 to 2000 - LJM 06/28/2010
-c
-        parameter( mxfld=30, mxsfld=120  )
+        parameter( mxfld=16, mxsfld=20  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
         integer natfld, attyp, atptr
         real    thrval, zlard, atten
         logical dupfld, unfflg
-c
-c     Diagnostic switch for large amounts of diagnostic printout
-c     Change diag_ljm to .true. when printout desired.
-c
-        logical diag_ljm
-        data diag_ljm/.false./
 c
         real space
         common  / store /   space(maxspc)
@@ -185,22 +171,15 @@ c
      +,     zlard(50)
 c
 c
-c   acs     =   user-specified input "attribute:parameter;" stream
-c               compressed into a large, continuous, without spaces
-c               stream starting with ";"
-c   ncas    =   the length of acs is typically ~600-800 characters, but
-c               cannot exceed 2222 (see subroutine reo)
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
-c                   1 = normal data (no conversion before interpolate)
-c                   2 = dbz or db field 
-c                       (db --> linear --> interpolate --> db)
-c                       Values that come from houskeeping information
+c                   1 = normal data
+c                   2 = dbz field
 c                   3 = time
 c                   4 = azimuth
 c                   5 = elevation
 c                   6 = range
-c                   7 = height above curved Earth (km MSL)
+c                   7 = 
 c                   8 = 
 c                   9 = k or the weighted number of folds
 c                  10 = field created by function FSPECL 
@@ -208,7 +187,7 @@ c
 c   fldoff  =   offset to first gate in data buffer
 c   dupfld  =   duplicate field flag 
 c   nyqptr  =   pointer to the Nyquist velocity associated with this field
-c   wtfun   =   weighting function (default is Cressman)
+c   wtfun   =   weighting function
 c                   1 = Cressman
 c                   2 = Exponential
 c                   3 = closest point
@@ -246,19 +225,14 @@ c
 c   nlards  =   number of spaces used up in "zlard"
 c   zlard   =   extra space for special parameters such as the nyquist vel.
 c
-        character*512 mnames
-        character*64 fldmne
+        character*256 mnames
+        character*32 fldmne
         common / fldcomc /  fldmne,     mnames
+c   fldmne  =   the original 2 character source field mnemonic
+c   mnames  =   character data--8 character names of the output fields
 c
-c   fldmne  =   the original 2-character source field mnemonic
-c   mnames  =   8-character names of the output fields
 c
-c   Note: mnames and fldmne must be increased to allow for mxfld=30 
-c         names of 2-character source and 8-character output field names
-c         Increased the size of fldmne from 32 to 64 and the size of 
-c         mnames from 256 to 512 - LJM 06/09/2010
-c
-        parameter(  mxcomp=50, mxtot=mxfld+mxsfld  )
+        parameter(  mxcomp=8, mxtot=mxfld+mxsfld  )
 c
         integer noutf, comptr, oftyp
 c                       
@@ -269,7 +243,7 @@ c
 c   noutf   =   the number of output fields
 c   oftyp   =   type of output field (see attached fields) plus 
 c                  21 = Weighted sum over sum of the weights
-c                  22 = Quality field (source must be a velocity field)
+c                  22 = Quality field
 c                  23 = Interpolated point (dBz field)
 c                  24 = Sum of weights squared over sum of weights
 c                  25 = Closest point
@@ -289,9 +263,7 @@ c
 c
 c
 c
-c     Increased maxfld from 7 to 30 - LJM (06/14/2010)
-c
-        parameter(      maxfld=30,      maxf32=maxfld*8
+        parameter(      maxfld=7,       maxf32=maxfld*8
      +,                 list=4,         infil=11
      +,                 outfil=12,      mxtfld=maxfld+3
      +,                 mmm=mxtfld*maxgt
@@ -358,11 +330,10 @@ c
         data iadjust_z / .false. /
         data sprint_xlt / .false. /
         data range1, range2 / 0.00, 10000.00 /
-        data xoff,yoff,zoff / 0.0, 0.0, 0.0 /
 code
 c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-      call dmplin( 'qreo1.F--LINUX VERSION 2.43 January 2012', 0 )
+      call dmplin( 'QREO--Version 1.2 NOVEMBER 1997           ', 33 )
 c
     	write(*,*) ' '
     	write(*,*)
@@ -374,16 +345,12 @@ c  open input control string file
       twiddle = 1
 c
 c  get the input control string
-      print *,' qreo1 - before call initdat: iradfun=',iradfun
-      call flush(6)
       call inidat( ipar, acs, nacs, aaz, advec, advhgt, xoff
      a, yoff, zoff, pt1, pinc, syms, nsym, az1, az2
      a, exct1, exct2, nxcl, multiv, prf1, prf2, fixflt, igskip
      a, flee, azrad, elrad, rgrad, earthr, gnyqv, grc, gbmwid
      a, grnd_out, range1, range2, swpskp, bmskp, iadjust_z
-     a, sprint_xlt, twiddle, iradfun, diag_ljm)
-      print *,' qreo1 - after call initdat: iradfun=',iradfun
-      call flush(6)
+     a, sprint_xlt, twiddle )
 c
 c      sprint_xlt = .true.
 c      sprint_xlt = .false.
@@ -411,12 +378,8 @@ c   set the end of volume flag
 c
 c
 c  initialize the access package and position to first record
-c-----subroutine setcat
-c----1  ( buffer, lenbf, lundx, lucat, ludat, uics, lens, ierr )
       call setcat( butter, lenbuf,
      1   7, 8, ltp, acs, nacs, error)
-      print *,'qreo1-reo: after setcat: error=',error
-      call flush(6)
 c 
       if(error.ne.0)then
         call typstg( lunout()
@@ -430,8 +393,6 @@ c
 c  set up reorder parameters
       call inireo( butter, advect, aaz, advec
      +,         advhgt, advx, advy, azrad, elrad, rgrad, rg )
-      print *,'qreo1-reo: after inireo'
-      call flush(6)
 c
 c   this is all the stuff that used to be in equivalence statements
         zmin = values(1,3)
@@ -450,7 +411,6 @@ c
       call f9( 'dalt', 4, dalti )
       call f9( 'dbas', 4, dbase )
       call e12( 'earthr', 6, earthr )
-      call flush(6)
 c
 c  set up source and destination position constants
 
@@ -458,12 +418,8 @@ c  destination baseline
       cosbas = cos( dbase*torad )
       cosbsq = cosbas*cosbas
       sinbas = sin( dbase*torad )
-c
-c  source radar lat., lon., and altitude
-c     slati - latitude of the radar
-c     slong - longitude of the radar
-c     salti - altitude of the radar
-c
+
+c  source radar lat., lon., and radius
       sinrla = sin( slati*torad )
       cosrla = cos( slati*torad )
       sinrlo = sin( slong*torad )
@@ -473,14 +429,11 @@ c
 c
       s1 = sinrla*cosrlo
       s2 = cosrla*cosrlo
+c
       s3 = sinrla*sinrlo
       s4 = cosrla*sinrlo
 c
-c  landmark or destination latitude, latitude, and altitude
-c     dlati - latitude of grid origin
-c     dlong - longitude of grid origin
-c     dalti - altitude of grid origin
-c
+c  landmark or destination lat. and lon. info
       sindla = sin( dlati*torad )
       cosdla = cos( dlati*torad )
       sindlo = sin( dlong*torad )
@@ -490,6 +443,7 @@ c
 c
       d1 = sindla*cosdlo
       d2 = sindla*sindlo
+c
       d3 = cosdla*cosdlo
       d4 = cosdla*sindlo
 c 
@@ -507,21 +461,12 @@ c   set diagnostic print out
 c
       do 22 i=1,nflds
 c   special fields?
-c     Adding "fldtyp(i) .eq. 7" here fixed Segmentation
-c     fault that was occurring after I added the ZMSL field.
-c     (LJM 12/21/2010)
-c
           mne(1:2) = fldmne(i*2-1:)
           specl =   fldtyp(i) .eq. 3 .or.
      +              fldtyp(i) .eq. 4 .or.
      +              fldtyp(i) .eq. 5 .or.
      +              fldtyp(i) .eq. 6 .or.
-     +              fldtyp(i) .eq. 7 .or.
      +              fldtyp(i) .eq. 10
-c     
-c     Print to understand this loop - LJM (07/13/2010)
-c          print *,'Do 22 loop: i,specl,fldmne(i*2-1:),mne=',i,
-c     +         specl,fldmne(i*2-1:),'++',mne(1:2)
 c
          if( .not.specl ) then
 c   make sure the source field is present for this field
@@ -543,16 +488,10 @@ c
             endif
          endif
 c
-         if(i.eq.1)then
-            print *,' '
-            print *,'List source field names, numbers, and types'
-            print *,'Routine reo in module qreo1.F'
-            call flush(6)
-         endif
-         call inslc( mne(1:2))
-         call i8( 'i', 1, i )
-         call i8( 't', 1, fldtyp(i))
-         call dmplnb
+        call inslc( mne(1:2))
+        call i8( 'i', 1, i )
+        call i8( 't', 1, fldtyp(i))
+        call dmplnb
 c
          if( nyqptr(i) .ne. inull ) then
 c   get the nyquist velocity for this field
@@ -597,16 +536,8 @@ c
   24	continue
 c
 c  generate the mudras tape file header
-        if(diag_ljm)then
-           print *,' '
-           print *,'Before call genhead: sprint_xlt=',sprint_xlt
-        endif
-        call genhed( butter, hedrec, fldnam, gnyqv, grc, acs, nacs
-     +       , sprint_xlt, iadjust_z, diag_ljm )
-        if(diag_ljm)then
-           print *,"After call genhead"
-           print *,' '
-        endif
+      call genhed( butter, hedrec, fldnam, gnyqv, grc, acs, nacs
+     +       , sprint_xlt, iadjust_z )
 c
 c   set the end of volume flag
         call seteov( .false. )
@@ -624,34 +555,12 @@ c
 c
 c
 c
-        print *,' '
-        print *,' '
-        call dmplin( 'c...top of loop through input data', 34 )
-        call flush(6)
-
+        call dmplin( 'c...mark loop   ', 13 )
 c  loop thru the input data 
 c
   44  continue
-
-c     For each ray get (azz,ell,fx,zprf) from functions in
-c     either
-c        UF: 
-c           ./apps/qreou/qufap.F (compiled and linked for qreou)
-c     or
-c        DORADE: 
-c           ./libs/dap/qdap.F (compiled and linked for qreod)
-c
-c     These functions are called here for both UF and DORADE formats.
-c     These housekeeping words are inside the kbuf integer array.
-c     The extraction of specific words from kbuf is done in functions
-c     such as kintgd which are "called" from functions like uelev.
-c
- 
-c     LJM (04/29/09) - diagnostic print
-c
-      if(diag_ljm)print *,'Before uelev,uazim:bmcnt,azz,ell,fx=',
-     x     bmcnt,azz,ell,fx
-c
+c  for each ray
+c 
       ell=uelev( butter )
 c      call f9( 'el', 2, ell )
       el = ell*torad
@@ -660,11 +569,6 @@ c      call f9( 'el', 2, ell )
       fx = ufixed( butter )
       zprf = udmprf(butter, mne1 )
       bmcnt = bmcnt +1
-
-c     LJM (04/29/09) - diagnostic print
-c
-      if(diag_ljm)print *,'After uelev,uazim:bmcnt,azz,ell,fx=',
-     x     bmcnt,azz,ell,fx
 c
       if( kswepn(butter).ne.kscan ) then
 c        call f5( 'fixed', 5, ufixed(butter))
@@ -751,21 +655,10 @@ c
 c   this is corrected in the final subroutines dcopl or xyswap 
 c   to x being east and y north.
 
-c     (LJM 5/27/09) - diagnostic print
-c
-        if(diag_ljm)then
-           print *,'qreo1.F-call xyz, salti,dalti=',salti,dalti
-           print *,'numgt,gatesp,az,el,earthr=',
-     +          numgt,gatesp,azz,ell,earthr
-           print *,'el, cosel,sin(el)=',el,cosel,sin(el)
-        endif
-
       call xyz( numgt, rg, fat(l4), fat(l5), fat(l6),
      a  cosel*cos( az ), -cosel*sin( az ), sin( el ),
-     a  cosel, earthr, salti)
-c-----print *,'Returned from qreo1.F-call xyz'
-
-c     interesting values now in 14, 15, 16
+     a  cosel, earthr)
+c     interesting values now in l4, l5, l6
 
       if( .false. .and. zok ) then
 c      if( zok ) then
@@ -781,66 +674,43 @@ c      if( zok ) then
          call typefe( fat(l6), 101, 115 )
       endif
 
-      if( airpln ) then
+        if( airpln ) then
 c  corrections for airborn doppler
-c--------print *,'qreo1.F-call insoff: numgt,xyz-off:',
-c----+        numgt,xoff,yoff,zoff,fat(14),fat(15),fat(16)
-         call insoff( xoff, yoff, zoff,
-     +        numgt, fat(l4), fat(l5), fat(l6))
-c--------print *,'Returned qreo1.F-call insoff'
-         slong = ulongt( butter )
-         slati = ulatit( butter )
-         salti = uhight( butter )
-         sinrla = sin( slati*torad )
-         cosrla = cos( slati*torad )
-         sinrlo = sin( slong*torad )
-         cosrlo = cos( slong*torad )
-         srad = earthr+salti
-         s1 = sinrla*cosrlo
-         s2 = cosrla*cosrlo
-         s3 = sinrla*sinrlo
-         s4 = cosrla*sinrlo
+          call insoff( xoff, yoff, zoff,
+     +      numgt, fat(l4), fat(l5), fat(l6))
+          slong = ulongt( butter )
+          slati = ulatit( butter )
+          salti = uhight( butter )
+          sinrla = sin( slati*torad )
+          cosrla = cos( slati*torad )
+          sinrlo = sin( slong*torad )
+          cosrlo = cos( slong*torad )
+          srad = earthr+salti
+          s1 = sinrla*cosrlo
+          s2 = cosrla*cosrlo
+          s3 = sinrla*sinrlo
+          s4 = cosrla*sinrlo
 c      call f9( 'slat', 4, slati )
 c      call f9( 'slon', 4, slong )
 c      call f9( 'salt', 4, salti )
-      endif
+        endif
 c
 c  advection
         if( advect .eq. 1 ) then
-c  single vector (advx, advy are single-valued in advxyz)
+c  single vector
           call advxyz( numgt, fat(l4), fat(l5), advx(1), advy(1),
      +          itm )
         elseif( advect .gt. 1 ) then
-c  as a function of height (advx, advy are multi-valued in adhxyz)
+c  as a function of height
           call adhxyz( numgt, fat(l4), fat(l5), fat(l6),
-     +          advx, advy, advz, itm, zmin, rcpdz, maxval )
+     +          advx, advy, advz, itm, zmin, rcpdz, maxval, zok )
         endif
 c
 c  convert xyz values to earth surface coordinates.
 c  ie. km. relative to 0 deg. lat., km. relative to 0 deg. lon., and
 c  km. relative to earth center
 c
-
-c     (LJM 5/26/09) - diagnostic print
-c
-        if(diag_ljm)then
-           print *,'sprint_xlt & .not. (sprint_xlt)=',sprint_xlt,
-     +          .not.(sprint_xlt)
-        endif
-
-c     The default value of sprint_xlt is .false. so that routines
-c     esurf and dxyz are called when SPRINT_XYZ is not included
-c     in the user-specified input.
-c
-c     If this diag_ljm is included there is no error
-c
         if( .not. sprint_xlt ) then
-           if(diag_ljm)then
-              print *,' '
-              print *,'SPRINT_XYZ attribute WAS NOT included'
-              print *,' '
-              print *,'Before esurf: s1,s2,s3,s4=',s1,s2,s3,s4
-           endif
            call esurf( numgt, fat(l4), fat(l5), fat(l6), srad,
      a          cosrlo, s1, s2, sinrlo, s3, s4, cosrla, sinrla,
      a          fat( l1 ), fat( l2 ), fat( l3 ))
@@ -850,12 +720,7 @@ c
 c     translate to the destination landmark and convert back to xyz
            call dxyz( numgt, fat(l1), fat(l2), fat(l3), drad,
      a          d1, d2, sindla, cosdlo, sindlo, d3, d4, cosdla,
-     a          fat(l4), fat(l5), fat(l6), iadjust_z, salti, dalti,
-     a          diag_ljm )
-           if(diag_ljm)then
-              print *,'  After dxyz: d1,d2,d3,d4=',d1,d2,d3,d4
-           endif
-c
+     a          fat(l4), fat(l5), fat(l6), iadjust_z, salti, dalti)
 c     values now in l4, l5, l6 again
 c     
 c     
@@ -871,25 +736,13 @@ c
 c     values back to l1, l2, l3
 
         else
-           if(diag_ljm)then
-              print *,' '
-              print *,'SPRINT_XYZ attribute WAS included'
-              print *,' '
-           endif
 c     use the SPRINT translation calculations
 c     for now we won't do coplane data with this option
 
            call xyswap_ljm( numgt, fat(l4), fat(l5) )
 c
-c     
-c     (LJM 6/3/09) - Bug fix when SPRINT_XYZ is specified by the user.
-c     Changed -slong to +slong and -dlong to +dlong since MMM xy2lldrv and
-c     ll2xydrv routines are no longer being called.  The usual convention
-c     is to have East longitude be (+) whereas MMM routines used the
-c     convention of West longitude as (+).
-c
            call sprint_xyz( numgt, fat(l4), fat(l5), fat(l6)
-     a          , slati, +slong, salti, dlati, +dlong, dalti
+     a          , slati, -slong, salti, dlati, -dlong, dalti
      a          , fat(l1), fat(l2), fat(l3), dbase )
 
         endif
@@ -1022,8 +875,7 @@ c
 c   now filter it to the grid
 c
       call filter( fat(l1), fat(l2), fat(l3), fat, numgt,
-     a  zok, azz, ell, itm, newvol, igskip, azrad, elrad, rgrad,
-     a  iradfun, diag_ljm )
+     a  zok, azz, ell, itm, newvol, igskip, azrad, elrad, rgrad )
 c
 c 
   77  continue
@@ -1034,11 +886,10 @@ c
 c
 c   next ray
       call setray(butter,1,error)
-c      print *,'After setray: error=',error
 c
       if(error.gt.900)then
     	 final = .true.
-c    	 write(*,*) 'final:', error, numbm
+    	 write(*,*) 'final:', error, numbm
          goto 900
       elseif(error.ne.0)then
          knterr=knterr+1
@@ -1067,7 +918,6 @@ c
         call scanfo( kswepn(butter), kswepm(butter), ttm, azz, ell, 
      +      ufixed(butter), .true., newvol, fcount )
 c
-        write(*,*) 'final error:', error, numbm,fcount
         call i8( 'total beams input', 0, numbm )
         call dmplnb
         call i8( 'total beams excluded', 0, excnt )
@@ -1097,7 +947,7 @@ c
 c                    
  909  continue
     	call clsscr()
-        call dmplin( 'stop', 4 )
+        call dmplin( 'stop ', 4 )
 c        call histit
         return
         end
@@ -1108,21 +958,15 @@ c-----------------------------------------------------------------------
      a      , exct1, exct2, nxcl, multiv, prf1, prf2, fixflt
      a	    , igskip, flee, azrad, elrad, rgrad, earthr
      a	    , gnyqv, grc, gbmwid, grnd_out, range1, range2
-     a      , swpskp, bmskp, iadjust_z, sprint_xlt, twiddle
-     a      , iradfun, diag_ljm)
+     a      , swpskp, bmskp, iadjust_z, sprint_xlt, twiddle )
 c  obtain reo specifiec parameters from input file
 c
         character acs*(*), syms*(*)
         dimension aaz(*), advec(*), advhgt(*)
         logical iadjust_z, sprint_xlt
-        logical same
-        logical diag_ljm
-c
-c       Increased maxfld from 7 to 30 - LJM 06/14/2010
-c       Increased maxval from 500 to 2000 - LJM 06/28/2010
 c
     	parameter( znull=-32768.)
-        parameter( maxval=2000, maxfld=30, maxf32=maxfld*8 )
+        parameter( maxval=500, maxfld=7, maxf32=maxfld*8 )
     	parameter( maxxcl=132 )
 c
         common  / datset /      slong,          slati,          salti
@@ -1146,43 +990,14 @@ c
 c
 c
 c
-c       Read in all user-specified input line-by-line.  This
-c       includes all comments, semicolon lines, and attributes
-c       along with their parameters.  This input stream is
-c       listed like the input followed by each input attribute
-c       and its parameters, leaving out all semicolon and
-c       comment (^) lines.
-c     
+c       read in input string
         call idset( acs, nacs, flee )
-c       LJM (6/15/09 diagnostic prints)
-        if(diag_ljm)then
-           print *,'After call idset: acs=attribute+parameter stream'
-           print *,'After call idset nacs=',nacs
-           print *,'After call idset acs=',acs(1:nacs)
-           print *,' '
-        endif
-        if(nacs.gt.2222)then
-           print *,'*** Routine inidat in qreo1.F: nacs .gt. 2222 ***'
-           print *,'***   Increase size of character string acs   ***'
-           call flush(6)
-           STOP
-        endif
-c
 c       call insl( '*inidat*', 8 )
 c       call i8( 'nacs', 4, nacs )
 c       
         twiddle = 3
         c1 = c
-
-        call fields( acs, c1, nacs, flee, diag_ljm )
-c
-c     subroutine fields( acs, a1, a2, flee, diag_ljm )
-c     This routine extracts information from the attribute-parameter
-c     input stream.  This includes the attribute (FIELDS:), followed 
-c     by the special 2-char mnemonic (designates the input field such
-c     as TI, AZ, EL, ...) and output field name.
-c
-        call flush(6)
+        call fields( acs, c1, nacs, flee )
         if( flee ) then
             go to 90
         endif
@@ -1329,11 +1144,7 @@ c
 	    call putfx(i, 1)
     	endif
 c       
-c       Get user-specified latitude, longitude, and altitude
-c       of the radar.
-c          slati - latitude of the radar (North is +, South is -)
-c          slong - longitude of the radar (East is +. West is -)
-c          salti - altitude (km MSL) of the radar
+c       radar coordinates
 c
     	a1 = indexa( acs, 1, nacs, 4, 'RLONGITUDE' )
     	if( a1 .gt. 0 ) then
@@ -1356,16 +1167,7 @@ c
             call rargs( acs, a1, nacs, salti, rum, dum )
     	endif
 c       
-c       Get user-specified longitude, latitude, and altitude of the
-c       grid origin along with the baseline azimuth (normally 90 deg).
-c
-c          dlati - latitude of grid origin (North is +, South is -)
-c          dlong - longitude of grid origin (East is +, West is -)
-c          dalti - altitude (km MSL) of the grid origin
-c          dbase - azimuth of the baseline (+X direction)
-c
-c       Note:  If the z output coordinate output is to be MSL, set
-c       dalti to zero and salti for the radar to its MSL height.
+c       grid coordinates
 c
     	a1 = indexa( acs, 1, nacs, 4, 'GLONGITUDE' )
     	if( a1 .gt. 0 ) then
@@ -1386,7 +1188,7 @@ c
     	a1 = indexa( acs, 1, nacs, 4, 'GALTITUDE' )
     	if( a1 .gt. 0 ) then
             call rargs( acs, a1, nacs, dalti, rum, dum )
-   	endif
+    	endif
 c       
     	a1 = indexa( acs, 1, nacs, 4, 'GBASELINE' )
     	if( a1 .gt. 0 ) then
@@ -1467,63 +1269,6 @@ c
     	if( a1 .gt. 0 ) then
             call rargs( acs, a1, nacs, rgrad, rum, dum )
     	endif
-
-c***************************************************************
-c     Determine the type of box dimensions to use
-c        iradfun = 1 (Cartesian - Use fixed XYZ radii)
-c        iradfun = 2 (Spherical - Use range-dependent RAE radii)
-c        iradfun = 3 [Hybrid    - Use AMAX1(XYZ,RAE) radii]
-c
-        call flush(6)
-
-c     Set the default BOX DIMENSION specification
-c
-        iradfun = 0
-        print *,' '
-        print *,'BOX DIMENSIONS: default iradfun=',iradfun
-        call flush(6)
-c     
-c       function indexa( a, ith, jth, n, p )
-        if(diag_ljm)then
-           print *,'BOX DIM before indexa:  acs=',acs
-           print *,'BOX DIM before indexa: nacs=',nacs
-        endif
-        a1 = indexa( acs, 1, nacs, 6, 'BOXDIM' ) 
-        print *,'BOX DIM after indexa: a1=',a1
-        call flush(6)
-        if( a1 .gt. 0 ) then
-            call attarg( acs, a1, nacs, 1, aa1, n )
-            print *,'BOX DIM: pointer to begin attribute  aa1=',aa1
-            print *,'BOX DIM: length of parameter           n=',n
-            call flush(6)
-
-c     Set the value of iradfun according to which weighting function
-c     (parameter = CARTESIAN, SPHERICAL, or HYBRID) was
-c     selected.  The logical function (foflib.F:same) does a comparison
-c     between the parameter following the BOX DIM attribute and the 
-c     character string in single quotes.
-c
-c     logical function same( a, i, n, b, j )
-c
-            if( same( acs, aa1, 6, 'CARTESIAN', 1 )) then
-               iradfun = 1
-            elseif( same( acs, aa1, 6, 'SPHERICAL', 1 )) then
-               iradfun = 2
-            elseif( same( acs, aa1, 6, 'HYBRID', 1 )) then
-               iradfun = 3
-            endif
-         else
-            print *,'***** BOX DIMENSIONS MUST BE SPECIFIED *****'
-            print *,'** EITHER CARTESIAN, SPHERICAL, OR HYBRID **'
-    	    call panic( '*********' )
-         endif
-         print *,'BOX DIMENSIONS: iradfun=',iradfun        
-         call flush(6)
-         call i8( 'box dim=',8,iradfun )
-         print *,' '
-         call flush(6)
-c*******************************************************
-
 c       
     	a1 = indexa( acs, 1, nacs, 4, 'XOFFSET' )
     	if( a1 .gt. 0 ) then
@@ -1579,7 +1324,7 @@ c
     	    	az2 = z2
     	    endif
     	endif
-c    
+c       
     	a1 = indexa( acs, 1, nacs, 4, 'RANGES' )
     	if( a1 .gt. 0 ) then
     	    z1 = znull
@@ -1594,7 +1339,6 @@ c
 	    call e12('rng1', 4, range1)
 	    call e12('rng2', 4, range2)
     	endif
-        print *,'RANGES in qreo1-initdat:rng1,rng2=',range1,range2
 c       
     	a1 = indexa( acs, 1, nacs, 3, 'PRFS' )
     	if( a1 .gt. 0 ) then
@@ -1718,16 +1462,14 @@ c
     	call i8( 'igs', 3, igskip )
         if( .not. outflg ) then
             flee = .true.
-            call typstg(lunout(), 
-     +           'No output file specification ^',1,0)
+            call typstg(lunout(), 'No output file specification ^',
+     +              1,0)
         endif
 c       
         return
         end
 c-----------------------------------------------------------------------
-        subroutine fields( acs, a1, a2, flee, diag_ljm )
-
-c   qreo1.F:call fields( acs, c1, nacs, flee )
+        subroutine fields( acs, a1, a2, flee )
 c   this routine analyses and accumulates the information about what
 c   fields to interpolate and how to interpolate them, information about
 c   what fields to output, and which output fields to BSCAN.
@@ -1740,39 +1482,23 @@ c   Block definitions could be replaced with an include (like)
 c
 C
 c
-c   Input: acs - the compressed attribute-parameter stream
-c          a2  - length of acs (nacs elsewhere in calls)
-c
         implicit integer( a-y )
         implicit real( z )
     	parameter( YES=1, NO=0 )
         character acs*(*)
         logical same, anumbr, flee
-        logical diag_ljm
 c
 c===========================================================================
 c___qcommon.for
 c
-c       Increased mxfld from 16 to 30 - LJM 06/09/2010
-c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
-c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
-c       Made sizcart=2048 consistent throughout - LJM 06/14/2010
-c       Increased maxval from 500 to 2000 - LJM 06/28/2010
-c
-    	parameter( maxcart=4001, sizcart=2048 )
+    	parameter( maxcart=4001, sizcart=1024 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
-        parameter( maxval=2000 )
+        parameter( maxval=500 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
-        parameter( mxfld=30, mxsfld=120  )
-
-c       Added parameter mxced=25 for testing against maximum
-c       number of fields that Cedric allows.  Leave mxfld=30
-c       for Reorder - LJM 06/21/2010
-c
-        parameter( mxced=25)
+        parameter( mxfld=16, mxsfld=20  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -1805,15 +1531,13 @@ c
 c
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
-c                   1 = normal data (no conversion before interpolate)
-c                   2 = dbz or db field 
-c                       (db --> linear --> interpolate --> db)
-c                       Values that come from houskeeping information
+c                   1 = normal data
+c                   2 = dbz field
 c                   3 = time
 c                   4 = azimuth
 c                   5 = elevation
 c                   6 = range
-c                   7 = height above curved Earth (km MSL)
+c                   7 = 
 c                   8 = 
 c                   9 = k or the weighted number of folds
 c                  10 = field created by function FSPECL 
@@ -1859,19 +1583,14 @@ c
 c   nlards  =   number of spaces used up in "zlard"
 c   zlard   =   extra space for special parameters such as the nyquist vel.
 c
-        character*512 mnames
-        character*64 fldmne
+        character*256 mnames
+        character*32 fldmne
         common / fldcomc /  fldmne,     mnames
+c   fldmne  =   the original 2 character source field mnemonic
+c   mnames  =   character data--8 character names of the output fields
 c
-c   fldmne  =   the original 2-character source field mnemonic
-c   mnames  =   8-character names of the output fields
 c
-c   Note: mnames and fldmne must be increased to allow for mxfld=30 
-c         names of 2-character source and 8-character output field names
-c         Increased the size of fldmne from 32 to 64 and the size of 
-c         mnames from 256 to 512 - LJM 06/09/2010
-c
-        parameter(  mxcomp=50, mxtot=mxfld+mxsfld  )
+        parameter(  mxcomp=8, mxtot=mxfld+mxsfld  )
 c
         integer noutf, comptr, oftyp
 c                       
@@ -1882,7 +1601,7 @@ c
 c   noutf   =   the number of output fields
 c   oftyp   =   type of output field (see attached fields) plus 
 c                  21 = Weighted sum over sum of the weights
-c                  22 = Quality field (source must be a velocity field)
+c                  22 = Quality field
 c                  23 = Interpolated point (dBz field)
 c                  24 = Sum of weights squared over sum of weights
 c                  25 = Closest point
@@ -1907,17 +1626,6 @@ c   initialize source field offset pointer
         data fo / mxg3 /
 c
 c
-c     (LJM 6/15/09 - diagnostic prints)
-c
-        len_string = GETLEN(acs)
-        na = len_string
-c-------if(diag_ljm)then
-           print *,'qreo1-fields has been called from qreo1-inidat'
-           print *,'Fields    acs len_string=',len_string
-           print *,'FIELDS:(c1,nacs)->(a1,a2)=',a1,a2
-           print *,'FIELDS:   acs=',acs(1:len_string)
-           print *,'FIELDS: First call to attarg'
-c-------endif
 
         call insl( '**fields**  ', 10 )
         flee = .false.
@@ -1926,26 +1634,9 @@ c   determine the weighting function (default is CRESSMAN)
 c
         f1 = indexa( acs, a1, a2, 5, 'WEIGHTING' ) 
         if( f1 .gt. 0 ) then
-           aa=0
-c----------if(diag_ljm)then
-              print *,'First call to attarg: f1,a2,1,aa,na=',
-     +          f1,a2,1,aa,na
-              call attarg( acs, f1, a2, 1, aa, na)
-              print *,'WEIGHTS: pointer to begin attribute f1=',f1
-              print *,'WEIGHTS: pointer to begin parameter aa=',aa
-              print *,'WEIGHTS: length of parameter        na=',na
-c----------endif
-           call flush(6)
-
-c     Set the value of wtfun according to which weighting function
-c     (parameter = CRESSMAN, EXPONENTIAL, CLOSEST, or UNIFORM) was
-c     selected.  The logical function (foflib.F:same) does a comparison
-c     between the parameter following the WEIGHTING attribute and the 
-c     character string in single quotes.
-c
-c     logical function same( a, i, n, b, j )
-c
-           if( same( acs, aa, 5, 'CLOSEST', 1 )) then
+            call attarg( acs, f1, a2, 1, aa, na )
+            if( same( acs, aa, 5, 'CLOSEST', 1 )) then
+c   closest point
                 wtfun = 3
             elseif( same( acs, aa, 5, 'EXPONENTIAL', 1 )) then
                 wtfun = 2
@@ -1966,120 +1657,58 @@ c   loop through the input fields that are also to be output
         if( ae+1 .ge. a2 ) then
             go to 44
         endif
-
-c     subroutine nxtatt( ab, ith, jth, a1, nch, ae )
-c     Examines the ith-jth characters of ab to find
-c     the first non-blank character (a1)
-
         call nxtatt( acs, ae+1, a2, f1, nch, ae )
-c     diagnostic print (LJM 01/2011)
-c        print *,'Fields routine in qreo1.F - call nxtatt: ith,jth=',
-c     +       ae+1,a2
-
-c     (LJM 06/15/09 diagnostic prints)
-c
-        if(diag_ljm)then
-           print *,'qreo1.F:fields first call nxtatt'
-           print *,'After call nxtatt:   ae,ae+1,a2=',ae,ae+1,a2
-           print *,'After call nxtatt:       f1,nch=',f1,nch
-           print *,'After call nxtatt: acs(ae,ae+1)=',acs(ae:ae+nch)
-           print *,' '
-        endif
-
-c   get first argument info if there is one with call to attarg
-c   in file foflib.F (essentially a parser of the user-specified
-c   input data stream).  The variable ff is used as an index to
-c   the number of the field that has been requested.
-c
+c   get first argument info if there is one
         call attarg( acs, f1, ae, 1, aa, na )
         ff = nflds+1
-        if(ff.gt.mxfld)then
-           print *,'Fields routine in qreo1.F (ff .gt. mxfld)'
-           call flush
-           STOP
-        endif
+c
 c
         if( same( acs, f1, 5, 'FIELD', 1 )) then
             if( na .le. 0 ) then
                 flee = .true.
                 call typstg( lunout(),
-     +                  'No source field name for ^',1,0)
+     +                  'No source field name for ^', 1, 0 )
                 call typstg( lunout(), acs, f1, nch )
             endif
-
-c     Check for user-requested two-character mnemonic fields, including
-c     TI, AZ, EL, RG, and special field XX.  Pass through all user-requested
-c     fields (FIELD:) and assign the field type (set fldtyp=3-6, 10, 1).
-c     Reserve spot (space) and unfold (unfptr) parameters as needed.
-c
-c     Check for TIME (sec) from the beginning of the scan
+c       determine the field type
             if( same( acs, aa, 2, 'TIME', 1 )) then
                 fldtyp(ff) = 3
-c     Check for AZ and reserve a spot for the azimuth angle
             elseif( same( acs, aa, 2, 'AZ', 1 )) then
                 fldtyp(ff) = 4
             	unfptr(ff) = incb( lenbox, 1 )
             	space( unfptr(ff)) = znull
-c     Check for EL and reserve a spot for the elevation angle
+c   reserve a spot for the reference angle
             elseif( same( acs, aa, 2, 'EL', 1 )) then
                 fldtyp(ff) = 5
             	unfptr(ff) = incb( lenbox, 1 )
             	space( unfptr(ff)) = znull
-c     Check for RG (slant range)
+c   reserve a spot for the reference angle
             elseif( same( acs, aa, 2, 'RG', 1 )) then
                 fldtyp(ff) = 6
-c     Check for ZMSL (height above curved Earth - km MSL)
-            elseif( same( acs, aa, 4, 'ZMSL', 1 )) then
-                fldtyp(ff) = 7
-            	unfptr(ff) = incb( lenbox, 1 )
-            	space( unfptr(ff)) = znull
-c     Check for XX (field produced by routine FSPECL)
             elseif( same( acs, aa, 2, 'XX', 1 )) then
+c       field produced by routine FSPECL
                 fldtyp(ff) = 10
             else
-c     This is a normal input data field that requires no
-c     conversion (dB --> linear --> interpolate --> dB)
-c     before interpolation!
+c       this is a real data field!
                 fldtyp(ff) = 1
             endif
-c
-c     End of checking for field types 3-7, 10, and 1.
-c    
-c-----------do j=1,nflds
-c               jj=2*j-1
-c               print *,'j,jj,fldmne=',j,jj,fldmne(jj:jj+1)
-c-----------enddo
-            call mnesrc( fldmne, nflds, acs, aa, 2, ith,
-     +           f1,nch,flee,NO)
-            if( ith .gt. 0) then
-               if (fldtyp(ith) .ne. 2) then
-                  fldoff(ff) = fldoff(ith)
-                  dupfld(ff) = .true.
-               else
-                  fldoff(ff) = inca( fo, maxgt )
-               endif
+            call mnesrc( fldmne, nflds, acs, aa, 2, ith
+     +              ,f1,nch,flee,NO)
+            if( ith .gt. 0 .and. fldtyp(ith) .ne. 2 ) then
+c       this source field already exists and is useable
+                fldoff(ff) = fldoff(ith)
+                dupfld(ff) = .true.
             else
-               fldoff(ff) = inca( fo, maxgt )
+c       offset to this field in the source field buffer
+                fldoff(ff) = inca( fo, maxgt )
             endif
-c            if( ith .gt. 0 .and. fldtyp(ith) .ne. 2 ) then
-cc       this source field already exists and is useable
-c                fldoff(ff) = fldoff(ith)
-c                dupfld(ff) = .true.
-c            else
-cc       offset to this field in the source field buffer
-c                fldoff(ff) = inca( fo, maxgt )
-c            endif
 c
 c
-c     Check for input data fields requiring special handling
-c     before interpolation such as dB --> linear, or unfolding.
-c
-c     Check for DBZFIELD (dB --> Linear conversion)
         elseif( same( acs, f1, 5, 'DBZFIELD', 1 )) then
             if( na .le. 0 ) then
                 flee = .true.
                 call typstg( lunout(),
-     +	    	    'No source field name for ^',1,0)
+     +	    	    'No source field name for ^', 1, 0 )
                 call typstg( lunout(), acs, f1, nch )
             endif
             if( wtfun .eq. 3 ) then
@@ -2088,15 +1717,14 @@ c     Check for DBZFIELD (dB --> Linear conversion)
                 fldtyp(ff) = 2
             endif
             fldoff(ff) = inca( fo, maxgt )
-c     Check for UNFOLD or velocity-related treatments
-c     such as storing the reference velocity to be used
-c     in the local-unfolding algorithm.
+c
+c
         elseif( same( acs, f1, 5, 'UNFOLD', 1 ) .or. 
      +	    	same( acs, f1, 5, 'KFIELD', 1 )) then
             if( na .le. 0 ) then
                 flee = .true.
                 call typstg( lunout(),
-     +	    	    'No source field name for ^',1,0)
+     +	    	    'No source field name for ^', 1, 0 )
                 call typstg( lunout(), acs, f1, nch )
             endif
     	    if(same( acs, f1, 5, 'KFIELD', 1 )) then
@@ -2107,8 +1735,7 @@ c     in the local-unfolding algorithm.
                 fldtyp(ff) = 1
             endif
 c
-            call mnesrc( fldmne, nflds, acs, aa, 2, ith,
-     +           1,nch,flee,NO)
+            call mnesrc( fldmne, nflds, acs, aa, 2, ith,f1,nch,flee,NO)
             if( ith .gt. 0 ) then
                 fldoff(ff) = fldoff(ith)
                 dupfld(ff) = .true.
@@ -2118,22 +1745,20 @@ c
             unfflg(ff) = .true.
             unfptr(ff) = incb( lenbox, 1 )
             space( unfptr(ff)) = znull
-c     Set nyqptr, the nyquist velocity pointer or index for this
-c     user-requested field.  Reserve a spot for the reference velocity
-c     to be stored in zlard.  Initialized all zlard to the missing
-c     data flag znull.
+c   reserve a spot for the reference velocity
+c   set nyquist velocity pointer
             nyqptr(ff) = incb( nlards, 1 )
             zlard(nyqptr(ff)) = znull
-c     Note: STOPPED HERE in understanding this code
+c
         else           
             go to 22
         endif
 c
-c     set up the rest of the info and pointers
+c
+c   set up the rest of the info and pointers
 c
         nflds = nflds + 1
-c
-c   copy field mnenomics within acs into source field mnenomic (fldmne)
+c   get the input field mnemonic
         call copyc( acs, aa, 2, fldmne, ff*2-1 )
 c   bump output field count
         nx = incb( noutf, 1 )
@@ -2144,24 +1769,11 @@ c   put away the name of the output field
         if( nb .gt. 0 ) then
             call copyc( acs, ab, nb, mnames, mnptr(nx) )
         else
-c   if no output field name, just use the source field 2-char mnemonic
+c   if no alias, just use the field mnemonic
             call bfill( mnames, mnptr(nx), 8 )
             call copyc( fldmne, ff*2-1, 2, mnames, mnptr(nx))
         endif
-
-c     Print mnenomics (names) for source (2-char)
-c     and output (8-char) fields - LJM (07/14/2010)
 c
-        nn=2*(nflds-1)+1
-        mm=8*(noutf-1)+1
-        if(noutf.eq.1)then
-           print *,' '
-           print *,'List source and output field numbers and names'
-           print *,'Fields routine in qreo1.F:'
-        endif
-        print *,'Fields routine in qreo1.F: nflds,noutf,ff=',
-     +       nflds,noutf,ff,fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
-        
         if( wtfun .ne. 3 ) then
             natfld(ff) = 2
 c   there will be 2 components in the output field--the weighted sum and
@@ -2215,17 +1827,6 @@ c
             go to 66
         endif
         call nxtatt( acs, ae+1, a2, f1, nch, ae )
-
-c     (LJM 06/15/09 diagnostic prints)
-c
-        if(diag_ljm)then
-           print *,'qreo1.F:fields second call nxtatt'
-           print *,'After call nxtatt:   ae,ae+1,a2=',ae,ae+1,a2
-           print *,'After call nxtatt:       f1,nch=',f1,nch
-           print *,'After call nxtatt: acs(ae,ae+1)=',acs(ae:ae+nch)
-           print *,' '
-        endif
-
 c   first argument
         call attarg( acs, f1, ae, 1, aa, na )
 c   second argument
@@ -2245,7 +1846,7 @@ c   locate the source field
             nx = incb( noutf, 1 )
 c   need to create a count field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 12, ith, 1, 0 )
-c   need to create a sum field if it's not already there
+c   need to create an sum field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 2, ith, 2, 0 )
 c   need to create a sum of the squares field if not there
    	    call crefld( attyp(1,ith), natfld(ith), 3, ith, 3, 0 )
@@ -2262,36 +1863,7 @@ c   put away the name of the output field
             call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 22
-            nn=2*(ith-1)+1
-            mm=8*(nx-1)+1
-            print *,'Fields routine in qreo1.F:',
-     +           ' Creating QUALITY    fld nx=',nx,noutf,
-     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
-
-c     Source must be a velocity field since this QUALITY field
-c     is normalized to the Nyquist (folding) velocity and is 
-c     defined as 100*[1-std(Velocities)/Vnyquist/sqrt(3)].
-c     See routine wrimud in file qreo3.F
 c
-            if(fldmne(nn:nn) .ne. 'V')then
-               print *,' '
-               write(6,1770)fldmne(nn:nn+1)
- 1770          format(' Source for QUALITY must be a velocity field: '
-     +              'name starts with V - your source name = ',a2)
-           print *,'********** Change source to a velocity **********'
-           print *,'** Questions: contact programmer (see qreo1.F) **'
-           call flush
-           
-c     Force program exit with "Floating exception"
-c     
-           ityp=1
-           ibomb=1/(1-ityp)
-           write(*,*)'****IBOMB=',ibomb,'****'
-           STOP
-        end if
-
-
-
 c
 c
         elseif( same( acs, f1, 5, 'COUNT', 1 ) .and. na .gt. 0 ) then
@@ -2312,11 +1884,6 @@ c   put away the name of the output field
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 27
-            nn=2*(ith-1)+1
-            mm=8*(nx-1)+1
-            print *,'Fields routine in qreo1.F:',
-     +           ' Creating COUNT      fld nx=',nx,noutf,
-     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
 c
@@ -2338,11 +1905,6 @@ c   put away the name of the output field
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 30
-            nn=2*(ith-1)+1
-            mm=8*(nx-1)+1
-            print *,'Fields routine in qreo1.F:',
-     +           ' Creating MINBIGR fld nx=',nx,noutf,
-     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
         elseif( same( acs, f1, 4, 'MAXBIGR', 1 ) .and. na .gt. 0 ) then
@@ -2363,11 +1925,6 @@ c   put away the name of the output field
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 30
-            nn=2*(ith-1)+1
-            mm=8*(nx-1)+1
-            print *,'Fields routine in qreo1.F:',
-     +           ' Creating MAXbigr fld nx=',nx,noutf,
-     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
 c
@@ -2384,18 +1941,13 @@ c   locate the source field
             nx = incb( noutf, 1 )
 c   need to create a count field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 12, ith, 1, 0 )
-c   need to create a sum field if it's not already there
+c   need to create an sum field if it's not already there
    	    call crefld( attyp(1,ith), natfld(ith), 2, ith, 2, 0 )
 c   put away the name of the output field
             call bfill( mnames, mnptr(nx), 8 )
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 2
-            nn=2*(ith-1)+1
-            mm=8*(nx-1)+1
-            print *,'Fields routine in qreo1.F:',
-     +           ' Creating AVERAGE    fld nx=',nx,noutf,
-     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
 c
@@ -2421,11 +1973,6 @@ c   put away the name of the output field
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 28
-            nn=2*(ith-1)+1
-            mm=8*(nx-1)+1
-            print *,'Fields routine in qreo1.F:',
-     +           ' Creating SDEVIATION fld nx=',nx,noutf,
-     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
 c
@@ -2451,11 +1998,6 @@ c   put away the name of the output field
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 24
-            nn=2*(ith-1)+1
-            mm=8*(nx-1)+1
-            print *,'Fields routine in qreo1.F:',
-     +           ' Creating WFACTOR    fld nx=',nx,noutf,
-     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
 c
@@ -2477,11 +2019,6 @@ c   put away the name of the output field
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 30
-            nn=2*(ith-1)+1
-            mm=8*(nx-1)+1
-            print *,'Fields routine in qreo1.F:',
-     +           ' Creating RADIUS fld nx=',nx,noutf,
-     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
 c
@@ -2496,7 +2033,7 @@ c   search the unfold flags until the source fields match
 c   error   
                 flee = .true.
                 call typstg( lunout(),
-     +               'No source field for ^',1,0)
+     +'No source field for ^', 1, 0 )
                 call typstg( lunout(), acs, f1, nch )
     	    	go to 45
             endif
@@ -2507,11 +2044,6 @@ c   this field is treated similar to the closest point field
 c   put away the name of the output field
             call bfill( mnames, mnptr(nx), 8 )
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
-            nn=2*(ith-1)+1
-            mm=8*(nx-1)+1
-            print *,'Fields routine in qreo1.F:',
-     +           ' Creating VREFERENCE fld nx=',nx,noutf,
-     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
 c
@@ -2533,22 +2065,16 @@ c   put away the name of the output field
     	    call copyc( acs, ab, nb, mnames, mnptr(nx) )
 c   output field type
             oftyp(nx) = 29
-            nn=2*(ith-1)+1
-            mm=8*(nx-1)+1
-            print *,'Fields routine in qreo1.F:',
-     +           ' Creating OCTANT     fld nx=',nx,noutf,
-     +           fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
 c
 c
-        endif
-
+        endif            
         go to 45
 c 
   60	continue
 c   error!
     	flee = .true.
         call typstg( lunout(),
-     +	    	'No output field name for ^',1,0)
+     +	    	'No output field name for ^', 1, 0 )
         call typstg( lunout(), acs, f1, nch )
     	go to 45
 c
@@ -2557,46 +2083,13 @@ c
   88    continue
 c
   90    continue
-
-c     LJM 06/10/10:  As near as I can tell all source and output
-c                    fields have been specified by the user and
-c                    various arrays have been set up for the 
-c                    storing the results of computations.
-c     nflds - number of source fields
-c     noutf - number of output fields (noutf can be .gt. nflds)
-c             For example, a velocity field might be interpolated
-c             as well as be used for COUNT, OCTANT, ..., fields.
-c             
 c
         call i8( 'nflds', 5, nflds )
-        call i8( 'noutf', 5, noutf )
         call i8( 'wtf', 3, wtfptr )
         call i8( 'mnr', 3, mnrptr )
         call i8( 'lenbox', 6, lenbox )
         call dmplnb
         call typstg( lunout(), fldmne, 1, nflds*2 )
-
-c     Moved this test against mxced (CEDRIC) instead of mxfld (Reorder)
-c     Check that the user is not asking for more fields
-c     than allowed by Reorder (mxfld=30) - LJM (06/09/2010)
-c     Changed this test to maximum readable by CEDRIC - LJM (07/13/2010)
-c     Currently, maximum readable by CEDRIC is mxced=25 - LJM (07/13/2010)
-c
-        if(noutf .gt. mxced)then
-           write(6,1771)noutf,mxced
- 1771      format(' Number of fields requested ',i3,
-     +          ' exceeds the number currently readable by CEDRIC ',i3)
-           print *,'** Check mxced and mxfld parameters in qreo1.F **'
-           call flush
-           
-c     Force program exit with "Floating exception"
-c     
-           ityp=1
-           ibomb=1/(1-ityp)
-           write(*,*)'****IBOMB=',ibomb,'****'
-           STOP
-        end if
-
 c        call typefx( fldtyp, 1, nflds )
 c        call typefx( fldoff, 1, nflds )
 c        call typefe( thrval, 1, nflds )
@@ -2623,25 +2116,7 @@ c        do 990 i = 1, noutf
 c            call typefx( comptr(1,i), 1, mxcomp )
 c 990    continue
         call typstg( lunout(), mnames, 1, 8*noutf )
-c        call dmplin( 'fieldsx  ', 8 )
-        if(noutf .gt. mxced)then
-           print *,' '
-           print *,'******** WARNING-WARNING-WARNING *******'
-           print *,'Max nmb fields allowed by Cedric, mxced=',mxced
-           print *,' '
-        endif
-c        do i=1,noutf
-c           if(i.gt.nflds)then
-c              nn=2*(nflds-1)+1
-c           else
-c              nn=2*(i-1)+1
-c           endif
-c           mm=8*(i-1)+1
-c           print *,'Fields routine in qreo1.F:',
-c     +          i,i,
-c     +          fldmne(nn:nn+1),'  ',mnames(mm:mm+7)
-c        enddo
-           
+        call dmplin( 'fieldsx  ', 8 )
 c
 c
         return
@@ -2654,7 +2129,6 @@ c
         implicit integer( a-z )
         integer a(*)
 c
-        print *,'TYPSRC has been called'
         ith = -1
         do 11 i = 1, n
             if( a(i) .eq. ityp ) then
@@ -2667,12 +2141,11 @@ c
         return
         end
 c-------------------------------------------------------------------------
-        subroutine mnesrc( mne, nf, s, i, n, ith,
-     +     f1, nch, flee, verify )
+        subroutine mnesrc( mne, nf, s, i, n, ith
+     +	    , f1, nch, flee, verify )
 c   this routine seaches an array of mnemonics "mne" for the "n" character
 c   string beginning at character "i" of string "s" and returns the location
-c   if found in "ith" which is the source field number within a packed 
-c   character array of n-character names.
+c   if found in "ith"
 c
         implicit integer( a-z )
     	parameter( YES=1, NO=0 )
@@ -2682,13 +2155,6 @@ c
         ith = -1
         l = 1
         do 11 k = 1, nf
-
-c       Print statement to help understand what ith variable
-c       returned actually refers to - LJM 07/14/2010.
-c
-c           print *,'mnesrc: k,aa,fldmne(l:l+1),acs(i:i+1)=',
-c     +          k,i,mne(l:l+1),s(i:i+1)
-c
             if( mne(l:l+1) .eq. s(i:i+1)) then
                 ith = k
                 go to 22
@@ -2700,7 +2166,7 @@ c
     	if( verify .eq. YES .and. ith .lt. 0 ) then
             flee = .true.
             call typstg( lunout(),
-     +              'No source field for ^',1,0)
+     +              'No source field for ^', 1, 0 )
             call typstg( lunout(), acs, f1, nch )
     	endif
 c
@@ -2710,8 +2176,8 @@ c
 
 c-------------------------------------------------------------------------
         subroutine unfsrc( unff, mne, nf, s, i, n, ith )
-c   this routine searches for the source of unfolding information.
-c   this routine searches the array of unfolding flag "unff" and 
+c   this routine is searching for the source of a unfolding information.
+c   this routine seaches the array of unfolding flag "unff" and 
 c   the array of mnemonics "mne" for the "n" character
 c   string beginning at character "i" of string "s" and returns the location
 c   if found in "ith"
@@ -2723,8 +2189,6 @@ c
         ith = -1
         l = 1
         do 11 k = 1, nf
-c           print *,'unfsrc: k,i,unff(k),mne(l:l+1),s(i:i+1)=',
-c     +          k,i,unff(k),mne(l:l+1),s(i:i+1)
             if( unff(k) .and. mne(l:l+1) .eq. s(i:i+1)) then 
                 ith = k
                 go to 90
@@ -2737,13 +2201,8 @@ c
         end
 c-------------------------------------------------------------------------
         subroutine crefld( a, n, ityp, ith, cpn, def )
-
-c   This routine searches "n" elements of array "a" for the number "ityp"
-c   It is called for all user-requested output fields that are special
-c   such as COUNT, OCTANT, WFACTOR,..., that require a source field such
-c   as the velocity.  Source field names are 2-character mnemonics that
-c   must coincide with names within the input data stream.
-c  
+c   this routine searches "n" elements of array "a" for the number "ityp"
+c
         implicit integer( a-z )
         integer a(*)
     	real def
@@ -2751,20 +2210,14 @@ c
 c===========================================================================
 c___qcommon.for
 c
-c       Increased mxfld from 16 to 30 - LJM 06/09/2010
-c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
-c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
-c       Made sizcart=2048 consistent throughout - LJM 06/14/2010
-c       Increased maxval from 500 to 2000 - LJM 06/28/2010
-c
-    	parameter( maxcart=4001, sizcart=2048 )
+    	parameter( maxcart=4001, sizcart=1024 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
-        parameter( maxval=2000 )
+        parameter( maxval=500 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
-        parameter( mxfld=30, mxsfld=120  )
+        parameter( mxfld=16, mxsfld=20  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -2797,15 +2250,13 @@ c
 c
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
-c                   1 = normal data (no conversion before interpolate)
-c                   2 = dbz or db field 
-c                       (db --> linear --> interpolate --> db)
-c                       Values that come from houskeeping information
+c                   1 = normal data
+c                   2 = dbz field
 c                   3 = time
 c                   4 = azimuth
 c                   5 = elevation
 c                   6 = range
-c                   7 = height above curved Earth (km MSL)
+c                   7 = 
 c                   8 = 
 c                   9 = k or the weighted number of folds
 c                  10 = field created by function FSPECL 
@@ -2851,19 +2302,14 @@ c
 c   nlards  =   number of spaces used up in "zlard"
 c   zlard   =   extra space for special parameters such as the nyquist vel.
 c
-        character*512 mnames
-        character*64 fldmne
+        character*256 mnames
+        character*32 fldmne
         common / fldcomc /  fldmne,     mnames
+c   fldmne  =   the original 2 character source field mnemonic
+c   mnames  =   character data--8 character names of the output fields
 c
-c   fldmne  =   the original 2-character source field mnemonic
-c   mnames  =   8-character names of the output fields
 c
-c   Note: mnames and fldmne must be increased to allow for mxfld=30 
-c         names of 2-character source and 8-character output field names
-c         Increased the size of fldmne from 32 to 64 and the size of 
-c         mnames from 256 to 512 - LJM 06/09/2010
-c
-        parameter(  mxcomp=50, mxtot=mxfld+mxsfld  )
+        parameter(  mxcomp=8, mxtot=mxfld+mxsfld  )
 c
         integer noutf, comptr, oftyp
 c                       
@@ -2874,7 +2320,7 @@ c
 c   noutf   =   the number of output fields
 c   oftyp   =   type of output field (see attached fields) plus 
 c                  21 = Weighted sum over sum of the weights
-c                  22 = Quality field (source must be a velocity field)
+c                  22 = Quality field
 c                  23 = Interpolated point (dBz field)
 c                  24 = Sum of weights squared over sum of weights
 c                  25 = Closest point
@@ -2890,11 +2336,6 @@ c
 c___qcommon.reo;10
 c===========================================================================
 c
-c     Print statements to help understand what this routine 
-c     is actually doing. - LJM 07/14/2010
-c
-c        print *,'Crefld routine in qreo1.F: a,n,ityp,cpn=',
-c     +       a(ith),n,ityp,cpn
         jth = -1
         do 11 i = 1, n
             if( a(i) .eq. ityp ) then
@@ -2905,22 +2346,13 @@ c     +       a(ith),n,ityp,cpn
   22	continue
 c
     	if( jth .gt. 0 ) then
-c           print *,'Crefld routine in qreo1.F:               ith,jth=',
-c     +          ith,jth
-           comptr(cpn,noutf) = atptr( jth, ith )
-c           print *,'Crefld routine qreo1.F:  cpn, noutf,comptr,atptr=',
-c     +     cpn, noutf, comptr(cpn,noutf),atptr(jth,ith)
+                comptr(cpn,noutf) = atptr( jth, ith )
     	else
-           at = incb( natfld(ith), 1 )
-           attyp( at, ith ) = ityp
-           atptr( at, ith ) = incb( lenbox, 1 )
-           space( atptr(at,ith)) = def
-           comptr(cpn,noutf) = atptr( at, ith )
-c           print *,'Crefld routine in qreo1.F:                at,ith=',
-c     +          at,ith
-c           print *,'Crefld routine qreo1.F: attyp,atptr,space,comptr=',
-c     +     attyp(at,ith),atptr(at,ith),space(atptr(at,ith)),
-c     +     comptr(cpn,noutf)		
+                at = incb( natfld(ith), 1 )
+                attyp( at, ith ) = ityp
+                atptr( at, ith ) = incb( lenbox, 1 )
+                space( atptr(at,ith)) = def
+                comptr(cpn,noutf) = atptr( at, ith )
     	endif
 c
   90    continue

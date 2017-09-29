@@ -184,24 +184,10 @@ c                 to the beginning character of the attribute
 c           c1  - pointer to the beginning character of the 
 c                 parameter associated with the attribute
 c         nchar - character length of the attribute
-c
       implicit integer( a-z )
-      character ibuf*(*)
+        character ibuf*(*)
 c
 c
-      len_string=GETLEN(ibuf)
-c-----print *,
-c     +     'foflib-attarg: ibuf len_string,ith,jth,nth,c1,nchar=',
-c     +     len_string,ith,jth,nth,c1,nchar
-      if(ith.eq.0 .and. jth.eq.1)ith=1
-      
-c      if(ith.ne.0 .and. jth.ne.0)then
-c         print *,'foflib-attarg: ibuf=',ibuf(ith:jth)
-c      elseif(jth.ne.0)then
-c         print *,'foflib-attarg: ibuf=',ibuf(1:jth)
-c      end if
-c      call flush(6)
-
       c1 = 0
       nchar = 0
       isemi = index( ibuf(ith:jth), ';' )
@@ -463,13 +449,9 @@ c
         character chs*(*)
         integer kbuf(*)
 c
-c        print *,'foflib-copycn: ith,n,jth=',ith,n,jth
-c        print *,'foflib-copycn:  chs(1:78)=',chs(1:78)
         j = jth
         do 11 i = ith, ith+n-1
             call put8( kbuf, j, ichar( chs(i:i)))
-c-----------print *,'foflib-copycn: i,j,chs(i:i),kbuf(j)=',
-c     +           i,j,chs(i:i),kbuf(j)
             j = j+1
   11    continue
 c
@@ -642,7 +624,6 @@ c
 c
 
         ni = len( id )
-c-------print *,'delstr: ni,getlen(id)=',ni,getlen(id)
         do 11 i = n, 1, -1
             a = pi(i)
             b = a+ni-1
@@ -1011,45 +992,6 @@ c   merge flag bit
 c
         return
         end
-c----------------------------------------------------------------------X
-c
-      INTEGER FUNCTION GETLEN (STRING)
-C
-C  DETERMINE THE LENGTH OF A CHARACTER STRING, EXCLUDING TRAILING BLANKS.
-C     RETURNS LENGTH IN GETLEN
-C
-C     STRING - DECLARED AS CHARACTER IN CALLING ROUTINE
-C     GETLEN -     "     "  INTEGER   "    "       "
-C
-c     Borrowed this fortran routine from Ppi_mmm-src in order to
-c     get a correct length of a character string.  The Fortran
-c     LEN command always returns the length of a character string
-c     according to its DIMENSION statement, not its actual length
-c     of non-blank characters.  Currently called from readln which
-c     is called from gnxatt. (LJM - 12/22/2010).
-c
-      CHARACTER *(*) STRING
-      CHARACTER*1 BLANK
-      PARAMETER (BLANK=' ')
-      INTEGER NEXT
-
-C     START WITH THE LAST CHARACTER AND FIND THE FIRST NONBLANK
-C
-      NEND=LEN(STRING)
-c      print *,'GETLEN: nend,string=',nend,string
-      DO 10 NEXT=NEND,1,-1
-         IF(STRING(NEXT:NEXT).NE.BLANK)THEN
-            GETLEN=NEXT
-c            print *,'GETLEN: next,string=',next,string(next:next)
-            RETURN
-         END IF
-   10 CONTINUE
-
-C     ALL CHARACTERS ARE BLANKS
-C
-      GETLEN=0
-      RETURN
-      END
 c---------------------------------------------------------------------
     	integer function fzap()
 c   the definitive source for the floating version of the missing flag
@@ -1507,8 +1449,6 @@ c
         end
 c----------------------------------------------------------------------
         subroutine idset( instr, nchar, flee )
-c
-c   the purpose of this routine is to compress all the input
 c   attributes and their parameters into a single compact string
 c   and list all input attributes and their parameters as well as
 c   any comment (^) lines.  The input is listed line-by-line then
@@ -1521,10 +1461,7 @@ c
         logical flee, eof, same
         character instr*(*)
         data lsem / 0 /
-c
-c       LJM (6/15/09 diagnostic prints)   
-c        print *,' '
-c        print *,'Idset has been called instr=',instr
+c   
         lui = namefx( 'IDSET', i )
         if( lui .eq. 0 ) then
             lui = 5
@@ -1535,7 +1472,7 @@ c   put a semicolon in the first character
         nchar = 1
         ith = nchar+1
         write( luo, 988 )
-     a       '------------ user-specified input stream ------------'
+     a          '---------------------- input -----------------------'
 c   
   11    continue
 c   get the next attribute
@@ -1566,7 +1503,7 @@ c
 c   
   66    continue
         write( luo, 988 ) 
-     a       '+++++++ input attributes and their parameters +++++++'
+     a          '+++++++++++++++++ input attributes +++++++++++++++++'
 c   
         if( instr(nchar:nchar) .ne. ';' ) then
             nchar = nchar +1
@@ -1582,10 +1519,9 @@ c   print the whole input set attribute by attribute
         endif
 c   
         write( luo, 988 ) 
-     a          '===== end input attributes and their parameters ====='
+     a          '===================================================='
 c   
   90    continue
-        print *,'Idset - return nchar=',nchar
         return
 c   
   988   format( ' ', a )
@@ -1593,10 +1529,7 @@ c
 c---------------------------------------------------------------------
       function indexa( a, ith, jth, n, p )
 c   this routine insures that the string found is indeed at the
-c   beginning of an attribute (p).
-c    
-c   Input: a - the compressed attribute-parameter stream
-c        acs - usual name elsewhere in the call attarg statements
+c   beginning of an attribute
 c
         character a*(*), p*(*)
 c
@@ -2417,9 +2350,7 @@ c
         implicit        integer( a-z )
         character       ab*(*)
 c
-c     diagnostic print (LJM 01/10/2011)
-c-------print *,'nxtatt routine in foflib.F: ith,jth=',
-c     +       ith,jth
+c
         c1 = ith
         a1 = 0
         nch = 0
@@ -2467,7 +2398,6 @@ c  count trailing blanks
  23     continue
 c
  90     continue
-        
         return
         end
 c---------------------------------------------------------------------
@@ -2773,59 +2703,35 @@ c
         end
 c----------------------------------------------------------------------
       subroutine readln( lun, line, n, zend, zerr )
-c
-c  this routine is called for every single card/line from an input file.
-c     Appears to always be called, never unixflib.F:subroutine readcd.
-c     Line (card) is dimensioned char*132 in gnxatt and char*256 in
-c     subroutine hgnxatt.
-c
+c  this routine reads a card/line from an input file
         character line*(*)
       logical zend, zerr
-      integer getlen
-c
-c     print *,'foflib.F:subroutine readln has been called'
-c     Appears to always be called rather than calling
-c     unixflib.F:subroutine readcd
 c
       nc = 0
       zend = .false.
       zerr = .false.
       read( lun, 987, err=77, end=66 ) line
   987 format( a )
-      nd = getlen(line)
-      n = nd
-
-c     Trap blank lines and reset them to a semi-colon (;)
-c     along with a length (nd and n) of one.
-c     (LJM 12/22/2010)
-c     
-      if(n.eq.0)then
-         print *,'************ WARNING WARNING WARNING *************'
-         print *,'*** readln in foflib.F: zero length blank line ***'
-         print *,'* Blank line not allowed - reset to a semi-colon *'
-         print *,'******** END-WARNING WARNING WARNING-END *********'
-         line(1:1) = ';'
-         nd = 1
-         n = nd
-      endif
-c     
-      do 22 i = nd, 1, -1
-         if( line(i:i) .ne. ' ' ) then
-            go to 23
-         endif
-         n = n-1
- 22   continue
- 23   continue
+      	nd = len(line)
+    	n = nd
+c
+    	do 22 i = nd, 1, -1
+    	    if( line(i:i) .ne. ' ' ) then
+    	    	go to 23
+    	    endif
+    	    n = n-1
+  22	continue
+  23 	continue
 c
       return
-c     
+c
  66   continue
       zend = .true.
       return
-c     
+c
  77   continue
-      write( lunout(), 789 )
- 789  format( ' Error in readln ' )
+    	write( lunout(), 789 )
+ 789	format( ' Error in readln ' )
       zerr = .true.
       return
       end
@@ -3304,36 +3210,17 @@ c---------------------------------------------------------------------
 c  this routine prints an arbitrary string of one line or less to
 c  logical unit 'lun'.
 c
-c     (LJM 01/10/2011) 
-c     1. When called with a diagnostic or information character string,
-c     the string ends with ^ and has ith=1 and nchr=0; e.g.
-c     call typstg( lun(), 'string^',1,0)
-c     2. Other calls include passing character strings with various
-c     lengths, e.g. nchr=128 when calls come from the Cedric header
-c     building (subroutine wrimud) and nchr is variable when called
-c     with the character strings associated with the user-specified
-c     attributes.  In general the fortran len command returns the
-c     length of a character string as dimensioned.  Therefore, nchr
-c     need not equal nlen.
-c
         implicit integer( a-z )
     	parameter( LLIM=78 )
         character is*(*)
-        integer searchend
 c
-c
-        nlen = len(is)
-c
-c     diagnostic print statement (LJM 01/10/2011)
-c       print *,'foflib-typstg:ith,nchr,nlen,is=',ith,nchr,nlen,is
 c
         i = ith
         n = nchr
 c
         if( n .lt. 1 ) then
-c  search (up to) the next 256 characters for a "^"
-            searchend = min(i + 255, len( is ))
-            h = index( is(i:searchend), '^' )
+c  search the next 256 characters for a "^"
+            h = index( is(i:i+255), '^' )
             if( h .gt. 0 ) then
                 n = h -1
             else
@@ -3342,12 +3229,7 @@ c  search (up to) the next 256 characters for a "^"
         endif
 c
         if( n .lt. 1 ) then
-           print *,'******* WARNING WARNING WARNING WARNING *******'
-           print *,'foflib.F - routine typstg: string length .lt. 1'
-           print *,'Apparently, nlen and string = ',nlen,is
-           print *,'************** STOPPING PROGRAM ***************'
-           STOP
-c          go to 90
+          go to 90
         endif
 c
  11     continue
@@ -3361,11 +3243,6 @@ c
 c
         write( lun, 988 ) is(i:j)
  988    format( ' ', a )
-c
-c     diagnostic print statement (LJM 01/10/2011)
-c        write( lun, 988 ) i,j,is(i:j)
-c 988    format( 'typstg:i,j=',2i6,' ', a )
-c
 c
         if( n .gt. 0 ) then
           i = j+1

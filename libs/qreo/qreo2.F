@@ -1,6 +1,6 @@
 c--------------------------------------------------------------------------
         block data qreo2
-        parameter( maxcart=4001, sizcart=2048 )
+        parameter( maxcart=4001, sizcart=1024 )
         common  / storef /      drecln,         lencar,         mxshlf
      +,         carnum(maxcart), shelf(maxcart),  usage(maxcart)
         integer drecln, lencar, mxshlf, carnum, shelf, usage
@@ -43,17 +43,14 @@ c                radar data stream.
 c                Note: The final calculations are done in qreo3.F (subrooutine
 c                wrimud).  Any conversions such as dB --> linear or local
 c                velocity unfolding (subroutine unfold in qreo3.F) are done
-c                during the accumulation phase.
+c                during the accumulation phase.c	inireo
 c
 c--------------------------------------------------------------------------
         subroutine inireo( buf, advect, aaz, advec
      +,         advhgt, advx, advy, azrad, elrad, rgrad, rg )
 c  this routine defaults all parameters that have not been input
 c
-c       Increased maxfld from 7 to 30 - LJM 06/14/2010
-c       Increased maxval from 500 to 2000 - LJM 06/28/2010
-c
-        parameter(      maxval=2000,    maxfld=30,      maxf32=maxfld*8
+        parameter(      maxval=500,     maxfld=7,       maxf32=maxfld*8
      +,                 par=22,         list=4,         infil=11
      +,                 outfil=12,      maxgt=2048,     mxtfld=maxfld+3
      +,                 range1=0.0,     range2=10000.0, zap=-32768.
@@ -70,11 +67,11 @@ c
         common  / datset /      slong,          slati,          salti
      +,         dlong,          dlati,          dalti,          dbase
      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
-     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
+     +,         deltai(3),      numval(3),      spacng(3)
      +,         tref,           values(maxval,3)
 c 
 	real zvx(maxval),   zvy(maxval),  zht(maxval)
-        integer tref
+      integer tref
 c
 c
 c
@@ -91,37 +88,10 @@ c       call f9( 'db', 2, dbase )
         if( dbase .lt. -32000. ) dbase = 90.
 c       dbase = dbase*torad
 c
-        if( axmin(1) .lt. -32000. ) axmin(1) = -50.
-        if( axmax(1) .lt. -32000. ) axmax(1) = 50.
-        if( spacng(1) .le. 0 ) spacng(1) = 1.0
-
-c     Fixed setting default radius(1&2) - LJM 01/30/2010
-c     Both radius(1) and radius(2) cannot be 0.  If they
-c     are, set both to default value of 1.
-c
-        print *,'qreo2-inireo: input radius(1) --> xrad',radius(1)
-        print *,'qreo2-inireo: input radius(2) --> yrad',radius(2)
-        print *,'qreo2-inireo: input radius(3) --> zrad',radius(3)
-
-        if( radius(1) .le. 0 .and. radius(2) .gt. 0 ) then
-           radius(1) = radius(2)
-        elseif( radius(2) .le. 0 .and. radius(1) .gt. 0 ) then
-           radius(2) = radius(1)
-        elseif( radius(1) .le. 0 .and. radius(2) .le. 0 ) then
-           radius(1) = 1.0
-           radius(2) = 1.0
-        endif
-
-c     Added dimensioned variable ijk_radii(3) for storing
-c     the radii in index space when ADAPTIVE option is
-c     included.  Will interpret CARTESIAN radii as indices.
-c     LJM 02/13/2012
-
-        do ijk = 1,3
-           ijk_radii(ijk) = nint (radius(ijk))
-           if (ijk_radii(ijk) .le. 0)ijk_radii(ijk)=1
-        end do
-
+        if( axmin(1) .lt. -32000. ) axmin(1) = 10.
+        if( axmax(1) .lt. -32000. ) axmax(1) = 30.
+        if( spacng(1) .le. 0 ) spacng(1) = .5
+        if( radius(1) .le. 0 ) radius(1) = 1.0
         n = ( axmax(1)-axmin(1))/spacng(1) + 1.000001
         if( n .gt. maxval ) n = maxval
         numval(1) = n
@@ -138,10 +108,10 @@ c        call f9( 'ide', 3, deltai(i))
 c        call f9( 'rad', 3, radius(i))
 c        call i8( 'n', 1, n )
 c
-        if( axmin(2) .lt. -32000. ) axmin(2) = -50.
-        if( axmax(2) .lt. -32000. ) axmax(2) = 50.
-        if( spacng(2) .le. 0 ) spacng(2) = 1.0
-c-------if( radius(2) .le. 0 ) radius(2) = 1.0
+        if( axmin(2) .lt. -32000. ) axmin(2) = 10.
+        if( axmax(2) .lt. -32000. ) axmax(2) = 30.
+        if( spacng(2) .le. 0 ) spacng(2) = .5
+        if( radius(2) .le. 0 ) radius(2) = 1.0
         n = ( axmax(2)-axmin(2))/spacng(2) + 1.000001
         if( n .gt. maxval ) n = maxval
         numval(2) = n
@@ -158,15 +128,10 @@ c        call f9( 'ide', 3, deltai(i))
 c        call f9( 'rad', 3, radius(i))
 c        call i8( 'n', 1, n )
 c
-        if( axmin(3) .lt. -32000. ) axmin(3) = 0.5
-        if( axmax(3) .lt. -32000. ) axmax(3) = 15.5
+        if( axmin(3) .lt. -32000. ) axmin(3) = .5
+        if( axmax(3) .lt. -32000. ) axmax(3) = 15.
         if( spacng(3) .le. 0 ) spacng(3) = 1.0
         if( radius(3) .le. 0 ) radius(3) = 1.0
-
-        print *,'qreo2-inireo: will use radius(1) --> xrad',radius(1)
-        print *,'qreo2-inireo: will use radius(2) --> yrad',radius(2)
-        print *,'qreo2-inireo: will use radius(3) --> zrad',radius(3)
-
         n = ( axmax(3)-axmin(3))/spacng(3) + 1.000001
         if( n .gt. maxval ) n = maxval
         numval(3) = n
@@ -235,7 +200,7 @@ c  if more than one sort by height
                   advhgt(j) = tempht
                 endif
  45     continue
-c          call typstg( 6, 'sort^',1,0)
+c          call typstg( 6, 'sort^', 1, 0 )
 c          call typefe( advx, 1, 20 )
 c          call typefe( advy, 1, 20 )
 c          call typefe( advhgt, 1, 20 )
@@ -274,19 +239,19 @@ c   the delta is .le. half the resolution
 	    endif
  488	continue
 c
-c          call typstg( 6, 'position^',1,0)
+c          call typstg( 6, 'position^', 1, 0 )
 c          call typefe( advx, 1, 20 )
 c          call typefe( advy, 1, 20 )
 c          call typefe( advhgt, 1, 20 )
 c  now do a linear fill of the arrays
         call linfit( advx, 1, maxval, zap )
-c          call typstg( 6, 'advx^',1,0)
+c          call typstg( 6, 'advx^', 1, 0 )
 c          call typefe( advx, 1, 20 )
         call linfit( advy, 1, maxval, zap )
-c          call typstg( 6, 'advy^',1,0)
+c          call typstg( 6, 'advy^', 1, 0 )
 c          call typefe( advy, 1, 20 )
         call linfit( advhgt, 1, maxval, zap )
-c          call typstg( 6, 'advhgt^',1,0)
+c          call typstg( 6, 'advhgt^', 1, 0 )
 c          call typefe( advhgt, 1, 20 )
 c
  55     continue
@@ -303,32 +268,24 @@ c       call f9( 'db', 2, dbase )
         end
 c----------------------------------------------------------------------
       subroutine genhed( kbuf, hed, fldnam, gnyqv, grc, acs, nacs
-     +       , sprint_xlt, iadjust_z, diag_ljm )
-
-c  This routine builds the CEDRIC (mudras) 510 16-bit volume header
-c  See Appendix D of the CEDRIC documentation
+     +       , sprint_xlt, iadjust_z )
+c  this routine builds the mudras file header record
 c
 c  access string
         character   acs*(*)
         logical sprint_xlt, iadjust_z
-        logical diag_ljm
 c
 c===========================================================================
 c___qcommon.for
 c
-c       Increased mxfld from 16 to 30 - LJM 06/09/2010
-c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
-c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
-c       Increased maxval from 500 to 2000 - LJM 06/28/2010
-c
-    	parameter( maxcart=4001, sizcart=2048 )
+    	parameter( maxcart=4001, sizcart=1024 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
-        parameter( maxval=2000 )
+        parameter( maxval=500 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
-        parameter( mxfld=30, mxsfld=120  )
+        parameter( mxfld=16, mxsfld=20  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -359,22 +316,15 @@ c
      +,     zlard(50)
 c
 c
-c   acs     =   user-specified input "attribute:parameter;" stream
-c               compressed into a large, continuous, without spaces
-c               stream starting with ";"
-c   ncas    =   the length of acs is typically ~600-800 characters, but
-c               cannot exceed 2222 (see subroutine reo)
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
-c                   1 = normal data (no conversion before interpolate)
-c                   2 = dbz or db field 
-c                       (db --> linear --> interpolate --> db)
-c                       Values that come from houskeeping information
+c                   1 = normal data
+c                   2 = dbz field
 c                   3 = time
 c                   4 = azimuth
 c                   5 = elevation
 c                   6 = range
-c                   7 = height above curved Earth (km MSL)
+c                   7 = 
 c                   8 = 
 c                   9 = k or the weighted number of folds
 c                  10 = field created by function FSPECL 
@@ -420,19 +370,14 @@ c
 c   nlards  =   number of spaces used up in "zlard"
 c   zlard   =   extra space for special parameters such as the nyquist vel.
 c
-        character*512 mnames
-        character*64 fldmne
+        character*256 mnames
+        character*32 fldmne
         common / fldcomc /  fldmne,     mnames
+c   fldmne  =   the original 2 character source field mnemonic
+c   mnames  =   character data--8 character names of the output fields
 c
-c   fldmne  =   the original 2-character source field mnemonic
-c   mnames  =   8-character names of the output fields
 c
-c   Note: mnames and fldmne must be increased to allow for mxfld=30 
-c         names of 2-character source and 8-character output field names
-c         Increased the size of fldmne from 32 to 64 and the size of 
-c         mnames from 256 to 512 - LJM 06/09/2010
-c
-        parameter(  mxcomp=50, mxtot=mxfld+mxsfld  )
+        parameter(  mxcomp=8, mxtot=mxfld+mxsfld  )
 c
         integer noutf, ncomp, comptr, oftyp, namptr, bsflag
         integer octthr
@@ -475,7 +420,7 @@ c
         common  / datset /      slong,          slati,          salti
      +,         dlong,          dlati,          dalti,          dbase
      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
-     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
+     +,         deltai(3),      numval(3),      spacng(3)
      +,         tref,           values(maxval,3)
 c 
       integer tref
@@ -496,22 +441,11 @@ c   mnemonic pointer
         mnptr( i ) = 1 + (i-1)*8
 c
 c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-c     (LJM 5/27/09) - diagnostic print
-c
-        if(diag_ljm)then
-           print *,' '
-           print *,'Genhed:        copln=',copln
-           print *,'Genhed #1 sprint_xlt=',sprint_xlt
-        endif
 c
 c
-        rota=cos(3.1415926535/180.0*(dbase))
-        rotb=sin(3.1415926535/180.0*(dbase))
+      rota=cos(3.1415926535/180.0*(dbase))
+      rotb=sin(3.1415926535/180.0*(dbase))
         copln = namefx( 'COPLANE', i ) .ne. 0
-        if(diag_ljm)then
-           print *,'Genhed:        copln=',copln
-           print *,'Genhed #2 sprint_xlt=',sprint_xlt
-        endif
 c 
 c  set up 510 16 bit word volume header 
 c
@@ -588,7 +522,6 @@ c
       str(1:4) = ' '
       call ktzone( kbuf, str )
       call putasc(hed,43,str,4)
-      if(diag_ljm)print *,'Genhed #3 sprint_xlt=',sprint_xlt
 c  search the string for a sequence number
         str(1:6) = ' '
         call getstr( 'SEQUENCE', str, 1, n )
@@ -764,20 +697,12 @@ c
       call put16(hed,303,1)
       call put16(hed,304,nint(gnyqv*sf))
       call put16(hed,305,nint(grc*sf))
-
-c     CEDRIC volume header - Landmark #1
-c     Name - Words 306-308 always 'ORIGIN', 6 char, 2/word
-c     Landmark #1 - XYZ = km, km, m (MSL) Words 309-311 (Always 0,0,0)
-c
+c 
       call putasc(hed,306,'ORIGIN',6)
       call put16(hed,309,0)
       call put16(hed,310,0)
       call put16(hed,311,0)
-
-c     CEDRIC volume header - Landmark #2
-c     Words 312-314 always 'AIRBRN' if airborne radar
-c     otherwise 6 character radar name, e.g. SPOL or CHIL or KGLD
-c
+c 
       if( namefx( 'AIRCRAFT', i ) .ne. 0 ) then
       	call putasc(hed,312,'AIRBRN',6)
       else
@@ -786,43 +711,10 @@ c
       endif
 
 
-c     (LJM 5/26/09) - diagnostic print
-c     What are roles of LL2XYDRV and transc routines?
-c
-C     SUBROUTINE LL2XYDRV:
-C        DRIVER ROUTINE FOR CONVERTING THE SEPARATION OF TWO POINTS
-C        SPECIFIED IN LAT, LON TO SEPARATION IN X, Y IN KM. 
-
-      if(diag_ljm)then
-         print *,'Genhed #4 sprint_xlt=',sprint_xlt
-         print *,'Before call ll2xydrv and/or transc: sprint_xlt=',
-     +        sprint_xlt
-      endif
       if( sprint_xlt ) then
-         if(diag_ljm)then
-            print *,'Before call ll2xydrv: slat-lon-alt=',
-     +           slati,-slong,salti
-            print *,'Before call ll2xydrv: dlat-lon-alt=',
-     +           dlati,-dlong,dalti
-            print *,'Before call ll2xydrv: xyz=',x,y,z
-         endif
          call ll2xydrv( slati, -slong, x, y, dlati, -dlong, dbase )
          z = salti - dalti
-c         if(diag_ljm)then
-            print *,'After call ll2xydrv: slat-lon-alt=',
-     +           slati,-slong,salti
-            print *,'After call ll2xydrv: dlat-lon-alt=',
-     +           dlati,-dlong,dalti
-            print *,'After call ll2xydrv: xyz=',x,y,z
-c         endif
       else
-c        if(diag_ljm)then
-            print *,'Before call transc: slat-lon-alt=',
-     +           slati,slong,salti
-            print *,'Before call transc: dlat-lon-alt=',
-     +           dlati,dlong,dalti
-            print *,'Before call transc: xyz=',x,y,z
-c        endif
          call transc(dbase, 0.0, 0.0, 0.0,
      1        salti,
      1        slati,
@@ -831,27 +723,10 @@ c        endif
      1        dlati,
      1        dlong,
      1        x,y,z)
-
-c     If ADJUST_Z is included, then iadjust_z = .true.
-c
-c     salti - altitude of the radar
-c     dalti - altitude of the origin 
-
          if( iadjust_z ) then
             z = salti - dalti
          endif
-c         if(diag_ljm)then
-            print *,'After call transc: slat-lon-alt=',slati,slong,salti
-            print *,'After call transc: dlat-lon-alt=',dlati,dlong,dalti
-            print *,'After call transc: xyz=',x,y,z
-c         endif
       endif
-
-c     CEDRIC volume header - Landmark #2
-c     Landmark #2 - XYZ = km, km, m (MSL) Words 315-317
-c
-c
-      if(diag_ljm)print *,'Genhed #5 sprint_xlt=',sprint_xlt      
       call put16(hed,315,nint(x*sf))
       call put16(hed,316,nint(y*sf))
       call put16(hed,317,nint(z*1000.))
@@ -861,11 +736,10 @@ c+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       call put16(hed,452,((numval(1)*numval(2)-1)/4+1)*numval(3))
       call put16(hed,453,0)
 c+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      call e12( 'x0', 2, x )
-      call e12( 'y0', 2, y )
-      call e12( 'z0', 2, z )
-      if(diag_ljm)print *,' '
-c     call tswp16( hed, 1, 330 )
+        call e12( 'x0', 2, x )
+        call e12( 'y0', 2, y )
+        call e12( 'z0', 2, z )
+c      call tswp16( hed, 1, 330 )
 c
       return
       end
@@ -1496,10 +1370,6 @@ c----------------------------------------------------------------------
       parameter( piovr2= 1.5707963 )
 c
 c
-c     (LJM 5/27/09) - diagnostic print
-c
-      print *,'transc has been called from genhed'
-
       dbaser = dbase*0.0174532925199433
       beta = piovr2 - dbaser
       earthr = namefp( 'EARTHR', i )
@@ -1514,20 +1384,17 @@ c
       blat   = latb
       blon   = lonb
 c 
- 123    format( 'qreo2.F-transc:', 10e12.4 )
+ 123    format( ' ', 10e12.4 )
       call toeart(alat, alon, earthr+aalt, surfxa, surfya,
      + surfza, earx, eary, earz)
-
-c     (LJM 5/27/09) - diagnostic print uncommented original print 123 statements
-c
-      call dmplin( 'toeart   ', 6 )
-      print 123, alat, alon, earthr+aalt, surfxa, surfya, surfza
-c      print 123, earx, eary, earz
+c        call dmplin( 'toeart   ', 6 )
+c        print 123, alat, alon, earthr+aalt, surfxa, surfya, surfza
+c        print 123, earx, eary, earz
       call tosurf(blat, blon, earthr+balt, surfxb, surfyb,
-     +     surfzb, earx, eary, earz)
-      call dmplin( 'tosurf   ', 6 )
-      print 123, blat, blon, earthr+balt, surfxb, surfyb, surfzb
-c      print 123, earx, eary, earz
+     + surfzb, earx, eary, earz)
+c        call dmplin( 'tosurf   ', 6 )
+c        print 123, blat, blon, earthr+balt, surfxb, surfyb, surfzb
+c        print 123, earx, eary, earz
  
       brange = sqrt( surfxb**2 + surfyb**2 )
         if( abs( surfyb ) .le. 1.e-9 ) then
@@ -1544,9 +1411,10 @@ c      print 123, earx, eary, earz
  
  
 c----------------------------------------------------------------------
-      subroutine toeart(lat,lon,radius,surfx,surfy,
-     + surfz,earx,eary,earz)
-c
+
+
+c subroutine toeart
+
 c this subroutine converts a surface cartesian coordinate vector 
 c to an earth cartesian coordinate vector.  the surface coordinate 
 c system is centered at the radar with positive x-axis to the north, 
@@ -1554,7 +1422,9 @@ c positive y-axis to the west, and positive z-axis upwards.  the
 c earth coordinate system has its origin at the center of the earth 
 c with z-axis to the north, x-axis through 0 degrees longitude, and 
 c y-axis through 90 degrees longitude.
-c
+c----------------------------------------------------------------------
+      subroutine toeart(lat,lon,radius,surfx,surfy,
+     + surfz,earx,eary,earz)
 c----------------------------------------------------------------------
       double precision lat,lon,radius,surfx,surfy,surfz,
      + earx,eary,earz,radlat,radlon
@@ -1591,9 +1461,11 @@ c      type *, 'toeart-xyz', earx,eary,earz
       return
       end
 c----------------------------------------------------------------------
-      subroutine tosurf(lat,lon,radius,surfx,surfy,
-     + surfz,earx,eary,earz)
-c
+
+
+
+c subroutine tosurf
+
 c this subroutine converts a earth cartesian coordinate vector to
 c a surface cartesian coordinate vector.  the surface coordinate 
 c system is centered at the radar with positive x-axis to the north, 
@@ -1601,7 +1473,9 @@ c positive y-axis to the west, and positive z-axis upwards.  the
 c earth coordinate system has its origin at the center of the earth 
 c with z-axis to the north, x-axis through 0 degrees longitude, and 
 c y-axis through 90 degrees longitude.
-c
+c----------------------------------------------------------------------
+      subroutine tosurf(lat,lon,radius,surfx,surfy,
+     + surfz,earx,eary,earz)
 c----------------------------------------------------------------------
       double precision lat,lon,radius,surfx,surfy,
      + surfz,earx,eary,earz,radlat,radlon
@@ -1647,9 +1521,9 @@ c----------------------------------------------------------------------
         subroutine advxyz( n, x, y, advx, advy, et )
 c  this routine applies a constant advection to x and y where advx is
 c  the x advection in m/s and advy is the y advection in m/s and
-c  et is the elapsed time in seconds.
+c  et is the elapsed time is seconds.
 c
-        dimension x(n), y(n)
+        dimension x(1), y(1)
     	integer et
 c
 c   remember: y is really -x and x is really y
@@ -1678,10 +1552,7 @@ c  This routine advects as a function of height
 c
 c   remember: y is really -x and x is really y
 c
-c     Note: maxval --> maxz from qreo1:reo (call adhxyz)
-
-        dimension x(n), y(n), z(n)
-        dimension advx(maxz), advy(maxz), advz(maxz)
+        dimension x(1), y(1), z(1), advx(1), advy(1), advz(1)
     	integer et
 c
         do 11 i = 1, n
@@ -1700,8 +1571,7 @@ c
         return
         end
 c----------------------------------------------------------------------
-      subroutine xyz( n, r, x, y, z, c1, c2, sinel, cosel, earthr, 
-     +     salti)
+      subroutine xyz( n, r, x, y, z, c1, c2, sinel, cosel, earthr)
 c  convert from radar space to x,y,z space
 c_______________________________________________________________________
 c  06 February 1990: Modification by LJM - NCAR/MMM
@@ -1719,51 +1589,27 @@ c      call e9( 'c2', 2, c2 )
 c      call e9( 'se', 2, sinel )
 
       do 11 i = 1, n
-         x(i) = r(i)*c1
+        x(i) = r(i)*c1
  11   continue
 
       do 12 i = 1, n
-         y(i) = r(i)*c2
+        y(i) = r(i)*c2
  12   continue
 
-c----------------------------------------------------------------------
+c_______________________________________________________________________
 c  Modification by LJM - NCAR/MMM
 c  Replaced computation of height to include 4/3 earth correction.
 c
 c      do 13 i = 1, n
 c        z(i) = r(i)*sinel
 c 13   continue
-c----------------------------------------------------------------------
-c  Possible modification by LJM - 6/2/2009:  Hold off on adding salti
-c  (Height of radar MSL) to convert from height above the radar to 
-c  height MSL until I figure out the roles of ADJUST_Z and SPRINT_XYZ.
 c
-c  To convert to height MSL, change z(i) calculation to 
-c         z(i) = salti + r(i)*sinel + cfac*slantr*slantr
-c  Note:  If r(i) is distance to a range gate (slant range), 
-c         then the variable slantr = horizontal (not slant) range.
-c
-c  Modification by LJM - 11/1/2011:  Added salti (Heigh of radar MSL)
-c     to z(i) so that heights of range gates are now km MSL.
-c     The output xyz grid is implicitly (ENU-ECEF) km E, km N, km MSL.
-c
-c     Flat earth (local tangent plane):
-c        Above radar:  z(i) = r(i)*sinel
-c        Above ground: z(i) = salti + r(i)*sinel
-c
-c     Curved earth correction (uses 4/3 earth radius): 
-c        zcor = cfac*slantr*slantr
-c----------------------------------------------------------------------
+c_______________________________________________________________________
 
-C-----Continue testing the computation of z(i) (LJM 11/2/2011)
-C
       cfac = 0.375/earthr
       do 13 i = 1, n
         slantr = r(i)*cosel
-        zcor = cfac*slantr*slantr
-c        z(i) = r(i)*sinel
-c        z(i) = r(i)*sinel + salti
-        z(i) = r(i)*sinel + zcor
+        z(i) = r(i)*sinel + cfac*slantr*slantr
  13   continue
 
       return
@@ -1771,37 +1617,34 @@ c        z(i) = r(i)*sinel + salti
 c----------------------------------------------------------------------
       subroutine sprint_xyz(  n, x, y, z, slat, slon, salt
      +     , dlat, dlon, dalt, xx, yy, zz, angxax )
-c
 c  routine that uses Jay Millers coordinated transformation routines
 c  to convert from the source radar coordinates to coordinates relative
 c  to the origin of the destination grid.
 c        
 c  for each gate determine its lat/lon value, then use this lat/lon
 c  to calculate (x,y) relative to the origin of the grid
-c
-c  (LJM 6/3/09) - Bug fix in call sprint_xyz when SPRINT_XYZ is 
-c  specified by the user since xy2lldrv and ll2xydrv are no longer
-c  being called.  Changed -slong and -dlong to +slong and +dlong
 c  
       parameter( maxgt=2048 )
       dimension plat(maxgt), plon(maxgt), palt(maxgt)
       dimension x(n), y(n), z(n), xx(n), yy(n), zz(n)
       data R_earth / 6366.8056 /
 c        
-c     get the lat/lon/alt of each range gate relative
-c     to a radar at (slat, slon, salt)
+c     get the lat/lon/alt of each gate
 c
-c     (LJM 5/26/09) - diagnostic print
-c
-c-----print *,'sprint_xyz has been called'
-
       ii = loop_xy2ll_v4( plat, plon, palt, x, y, z
      +     , slat, slon, salt, R_earth, n )
 c
-c  get (xx,yy,zz) relative to the grid origin (dlat, dlon, dalt)
+c  get (x,y,z) relative to the grid origin
 c
       ii = loop_ll2xy_v4( plat, plon, palt, xx, yy, zz
      +     , dlat, dlon, dalt, R_earth, n )
+c
+c
+c
+c
+c
+c
+c
 c
 c      do 11 ii = 1, n
 c         call xy2lldrv( plat, plon, x(ii), y(ii)
@@ -1879,9 +1722,7 @@ c     +         , x(ii), y(ii), z(ii)
 
  44      continue
 
-c     Fixed this bug (LJM 8/31/2011) was loop_xy2ll_v3, not ..._v4
-c
-         loop_xy2ll_v4 = num_pts
+         loop_xy2ll_v3 = num_pts
          return
 
          end
@@ -1955,9 +1796,7 @@ c     +         , x(ii), y(ii), z(ii)
 
  44      continue
 
-c     Fixed this bug (LJM 8/31/2011) was loop_xy2ll_v3, not ..._v4
-c
-         loop_ll2xy_v4 = num_pts
+         loop_ll2xy_v3 = num_pts
          return
 
          end
@@ -1967,7 +1806,7 @@ c----------------------------------------------------------------------
       subroutine esurf( n, x, y, z, r, cosrlo, s1, s2, sinrlo,
      a  s3, s4, cosrla, sinrla, ex, ey, ez )
 c----------------------------------------------------------------------
-c  convert input xyz values to earth surface coordinates (ex,ey,ez).
+c  convert xyz values to earth surface coordinates.
 c  ie. km. relative to 0 deg. lat., km. relative to 0 deg. lon., and
 c  km. relative to earth center
 
@@ -1983,11 +1822,6 @@ c        call e9( 's4', 2, s4 )
 c        call e9( 'crla', 4, cosrla )
 c        call e9( 'srla', 4, sinrla )
 c
-
-c     (LJM 5/26/09) - diagnostic print
-c
-c      print *,'esurf has been called'
-
       con = r*s2
       do 11 i = 1, n
         ex(i) = -s1*x(i) +sinrlo*y(i) +s2*z(i) +con
@@ -2024,15 +1858,13 @@ c 13   continue
 
 c----------------------------------------------------------------------
       subroutine dxyz( n, ex, ey, ez, r, d1, d2, sindla, cosdlo,
-     a  sindlo, d3, d4, cosdla, x, y, z, iadjust_z, salti, dalti,
-     a  diag_ljm )
+     a  sindlo, d3, d4, cosdla, x, y, z, iadjust_z, salti, dalti )
 c----------------------------------------------------------------------
 c  translate to the destination landmark and convert back to xyz
 
       dimension ex(n), ey(n), ez(n), x(n), y(n), z(n)
       real zdiff
       logical iadjust_z
-      logical diag_ljm
 
 c        call e9( 'r', 1, r )
 c        call e9( 'd1', 2, d1 )
@@ -2049,13 +1881,6 @@ c
 c     
 c
 c
-
-c     (LJM 5/26/09) - diagnostic print
-c
-      if(diag_ljm)then
-         print *,'dxyz has been called'
-      endif
-
       do 22 i = 1, n
         x(i) = -d1*ex(i) -d2*ey(i) +cosdla*ez(i)
  22   continue
@@ -2064,10 +1889,6 @@ c
         y(i) = sindlo*ex(i) -cosdlo*ey(i)
  23   continue
 c
-      if(diag_ljm)then
-         print *,'iadjust_z=',iadjust_z
-         print *,'salti,dalti=',salti,dalti
-      endif
       if( iadjust_z ) then
 c  the final z should be equivalent to the original z plus
 c  the difference in altitude between the two origins
@@ -2170,10 +1991,6 @@ c----------------------------------------------------------------------
       dimension x(n), y(n)
 c  swap x and y axes
 
-c     (LJM 5/26/09) - diagnostic print
-c
-c      print *,'xyzswap_ljm has been called'
-
       do 11 ii = 1, n
          tmp = x(ii)
          x(ii) = -y(ii)
@@ -2193,10 +2010,6 @@ c  convert destination xyz to destination coplane coordinates
       logical zok
 
       beta = piovr2 - dbaser
-
-c     (LJM 5/26/09) - diagnostic print
-c
-c      print *,'xyswap has been called'
 
       if( abs( beta ) .gt. .009999 ) then
 c  rotate axes
@@ -2239,7 +2052,7 @@ c  swap x and y axes
 c----------------------------------------------------------------------
         subroutine insoff( xo, yo, zo, n, x, y, z )
 c
-        dimension x(n), y(n), z(n)
+        dimension x(1), y(1), z(1)
 c  offset the xyz values by constants
 c
 c   remember: y is really -x and x is really y
@@ -2260,24 +2073,18 @@ c
         end
 c----------------------------------------------------------------------
       subroutine filter( x, y, z, flds, ngts, zok, az, el, itm
-     +  , newvol, igskip, azrad, elrad, rgrad, iradfun, airpln
-     +  , adaptive, diag_ljm )
+     +  , newvol, igskip, azrad, elrad, rgrad )
 c===========================================================================
 c___qcommon.for
 c
-c       Increased mxfld from 16 to 30 - LJM 06/09/2010
-c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
-c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
-c       Increased maxval from 500 to 2000 - LJM 06/28/2010
-c
-    	parameter( maxcart=4001, sizcart=2048 )
+    	parameter( maxcart=4001, sizcart=1024 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
-        parameter( maxval=2000 )
+        parameter( maxval=500 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
-        parameter( mxfld=30, mxsfld=120  )
+        parameter( mxfld=16, mxsfld=20  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -2285,8 +2092,6 @@ c
         real    thrval, zlard, atten
         real    xmin, ymin, zmin
         logical dupfld, unfflg
-        logical airpln
-        logical diag_ljm
 c
         real space
         common  / store /   space(maxspc)
@@ -2313,15 +2118,13 @@ c
 c
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
-c                   1 = normal data (no conversion before interpolate)
-c                   2 = dbz or db field 
-c                       (db --> linear --> interpolate --> db)
-c                       Values that come from houskeeping information
+c                   1 = normal data
+c                   2 = dbz field
 c                   3 = time
 c                   4 = azimuth
 c                   5 = elevation
 c                   6 = range
-c                   7 = height above curved Earth (km MSL)
+c                   7 = 
 c                   8 = 
 c                   9 = k or the weighted number of folds
 c                  10 = field created by function FSPECL 
@@ -2367,14 +2170,14 @@ c
 c   nlards  =   number of spaces used up in "zlard"
 c   zlard   =   extra space for special parameters such as the nyquist vel.
 c
-        character*512 mnames
-        character*64 fldmne
+        character*256 mnames
+        character*32 fldmne
         common / fldcomc /  fldmne,     mnames
 c   fldmne  =   the original 2 character source field mnemonic
 c   mnames  =   character data--8 character names of the output fields
 c
 c
-        parameter(  mxcomp=50, mxtot=mxfld+mxsfld  )
+        parameter(  mxcomp=8, mxtot=mxfld+mxsfld  )
 c
         integer noutf, ncomp, comptr, oftyp, namptr, bsflag
         integer octthr
@@ -2406,9 +2209,8 @@ c
 c
 c
 c
-c       Increased maxfld from 7 to 30 - LJM 06/14/2010
-c
-        parameter(      maxfld=30,       maxf32=maxfld*8
+
+        parameter(      maxfld=7,       maxf32=maxfld*8
      +,                 maxrec=40000
      +,                 input=5
      +,                 list=6,         infile=12
@@ -2423,7 +2225,6 @@ c
      +,         equal,          eof, 	    	newvol
      +,         endofd,         first,          ok,             pow
      +,         nonzro,         bok,            copln,          itrap
-     +,         flat,           adaptive
 
 
         integer
@@ -2446,7 +2247,7 @@ c
         common  / datset /      slong,          slati,          salti
      +,         dlong,          dlati,          dalti,          dbase
      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
-     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
+     +,         deltai(3),      numval(3),      spacng(3)
      +,         tref,           values(maxval,3)
 c 
       integer tref
@@ -2462,12 +2263,12 @@ c
 c
         common  / scr /         ok(maxgt)
 c
-    	save ikount, first, tcount, flat
+    	save ikount, first, tcount
      +, copln, nxval, nyval, nzval, rcpdx, rcpdy, rcpdz
      +, xrad, yrad, zrad, xval, yval, zval, dx, dy, dz
      +, xmin, ymin, zmin
 c
-      data first,flat / .true., .false. / 
+      data first / .true. / 
 code
 c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 c 
@@ -2478,7 +2279,6 @@ c  first pass initialization
         if( first ) then
             first = .false.
             tcount =  namefx( 'TCOUNT', ikount )
-            print *,'qreo2.F-filter: flat=',flat
 c   try to cut down on subscript calculations
 c   a lot of this stuff used to be in equivalence statements
             copln = namefx( 'COPLANE', i ) .ne. 0
@@ -2491,27 +2291,6 @@ c   a lot of this stuff used to be in equivalence statements
             xrad = radius(1)
             yrad = radius(2)
             zrad = radius(3)
-
-c     LJM (05/06/09) - diagnostic print
-c
-            delx = delta(1)
-            dely = delta(2)
-            delz = delta(3)
-            write(6,1699)
- 1699       format(/,' GRID and INTERPOLATION RADII:')
-            write(6,1700)nxval,nyval,nzval
- 1700       format(' nxval,nyval,nzval=',3i8)
-            write(6,1703)rcpdx,rcpdy,rcpdz
- 1703       format(' rcpdx,rcpdy,rcpdz=',3f8.3)
-            write(6,1705)delx,dely,delz
- 1705       format('    delx,dely,delz=',3f8.3)
-            write(6,1707)xrad,yrad,zrad
- 1707       format('    xrad,yrad,zrad=',3f8.3)
-            write(6,1709)rgrad,azrad,elrad
- 1709       format(' rgrad,azrad,elrad=',3f8.3)
-            write(6,1711)iradfun
- 1711       format(' BOX: (1) Cartesian,(2) Spherical,(3) Hybrid',/,
-     +           ' Box dimensions selected: iradfun=',i3,/)
 c
 c  establish box and carton characteristics
 c  a box contains all the data associated with a grid point
@@ -2552,7 +2331,7 @@ c
                 call i8( 'max. possible  ', 13, maxrec*nbxcar )
                 call dmplin( ' ', 1 )
                 call typstg( list,
-     +  'the total number of grid points is too large ^',1,-1)
+     a  'the total number of grid points is too large ^', 1, -1 )
                 stop66
             endif
 c
@@ -2587,8 +2366,6 @@ c
                 zval(i) = values(i,3)
   123       continue
             zmin = zval(1)
-            print *,' '
-            print *,'IN FILTER: MIN(xyz)=',xmin,ymin,zmin
 c       call dmplin( 'zboxes', 0 )
 c       call typefx( izbox, 1, nzval )
 c
@@ -2619,126 +2396,22 @@ c  for coplane data convert angles to radians
             zmin = zval(1)
 c       
 c
-c---------------------------------------------------------------
-c   LJM (04/29/09) replaced the dx calculation that made dx=dy
-c      with one that now depends on the  user-specified range
-c      radius (rgrad).  As near as I can tell, it doesn't matter
-c      whether dx or dy is oriented along range.  The dy and dz
-c      box dimensions are now calculated as arc lengths and are
-c      no longer being messed up with a call to radinf that 
-c      has been commented out.
-c---------------------------------------------------------------
-c      Box dimensions for region of influence for filtering
-c         (subroutine filter) to the output XYZ grid point:
-c         Initially set (dx,dy,dz) to XYZ radii.  If RAE radii
-c         are non-zero, reset (dx,dy,dz) to RAE radii.
-c      Note:  This code is not exhaustive of all the possible
-c             combinations of XYZ vs. RAE radii.  Implicitly
-c             this code assumes that the user selects either XYZ
-c             or RAE, but not part of one and part of the other.
-c---------------------------------------------------------------
-c
             do 16 i = 1, maxgt
-
-c     (LJM 6/15/09)
-c        Replaced these box dimension calculations with a variant
-c        that includes CARTESIAN, SPHERICAL, or HYBRID dimensions.
-c
-c-               if( azrad .gt. 0 ) then
-c-                  if( rgrad .gt. 0 ) then
-c-                     dx(i) = rgrad
-c-                  else 
-c-                     dx(i) = rg(i)*azrad*torad
-c-                  endif
-c-                  dy(i) = rg(i)*azrad*torad
-c-               else
-c-                  dx(i) = xrad
-c-                  dy(i) = yrad
-c-               endif
-c-     
-c     Note: Coplane is an obsolete scanning scheme since
-c           few if any radars actually scan this way.
-c           COPLANE attribute ==> copln = .true.
-c
-c-               if( elrad .gt. 0 .and. copln ) then
-c-                 dz(i) = elrad*torad
-c-               elseif( elrad .gt. 0 ) then
-c-                 dz(i) = rg(i)*elrad*torad
-c-               else
-c-                 dz(i) = zrad
-c-               endif
-
-c     (LJM 6/15/09)
-c        Replacement for box dimension calculations with a variant
-c        that includes CARTESIAN, INDEX, SPHERICAL, or HYBRID
-c        dimensions.
-c     
-c     CARTESIAN - Calculate box dimensions from xyz radii
-c
-               if( xrad .gt. 0 ) then
-                  dx_xyz = xrad
-               else
-                  dx_xyz = yrad
-               endif
-               dy_xyz = yrad
-               dz_xyz = zrad
-               
-c     SPHERICAL - Calculate box dimensions from rae radii
-c     
-               if( rgrad .gt. 0 ) then
-                  dx_rae= rgrad
-               else
-                  dx_rae = rg(i)*azrad*torad
-               endif
-               dy_rae = rg(i)*azrad*torad
-               dz_rae = rg(i)*elrad*torad
-
-c     Select box dimensions from xyz (CARTESIAN) or rae radii (SPHERICAL)
-c     or HYBRID (CARTESIAN until SPHERICAL > CARTESIAN, then SPHERICAL)
-c
-c     (LJM 11/8/2011) - Fix for airborne (airpln = .true.)
-c     Always use CARTESIAN box dimensions in horizontal planes (XY) 
-c     since the linear spacing between beams (AFT and FOR) is roughly
-c     constant along the aircraft track, at least for straight-line
-c     flights.
-c        dx - radius of box in the x-direction
-c        dy - radius of box in the y-direction
-c        dz - radius of box in the z-direction
-c     
-               if( iradfun .eq. 1) then
-c     CARTESIAN
-                  dx(i) = dx_xyz
-                  dy(i) = dy_xyz
-                  dz(i) = dz_xyz
-               else if (iradfun .eq. 2) then
-c     SPHERICAL
-                  if(airpln)then
-                     dx(i) = dx_xyz
-                     dy(i) = dy_xyz
-                     dz(i) = dz_rae
-                  else
-                     dx(i) = dx_rae
-                     dy(i) = dy_rae
-                     dz(i) = dz_rae
-                  end if
-               else if (iradfun .eq. 3) then
-c     HYBRID
-                  if(airpln)then
-                     dx(i) = dx_xyz
-                     dy(i) = dy_xyz
-                     dz(i) = amax1(dz_xyz,dz_rae)
-                  else
-                     dx(i) = amax1(dx_xyz,dx_rae)
-                     dy(i) = amax1(dy_xyz,dy_rae)
-                     dz(i) = amax1(dz_xyz,dz_rae)
-                  end if
-               end if
-c               if(mod(i,10) .eq. 0)then
-                  if(rg(i).gt.0.0 .and. rg(i) .le. 60.0)then
-                     print *,'qreo2-filter: i,rg,dx,dy,dz=',
-     +                    i,rg(i),dx(i),dy(i),dz(i)
-                  endif
-c               endif
+                if( azrad .gt. 0 ) then
+                    dx(i) = rg(i)*azrad*torad
+                    dy(i) = rg(i)*azrad*torad
+                else
+                    dx(i) = xrad
+                    dy(i) = yrad
+                endif
+c       
+                if( elrad .gt. 0 .and. copln ) then
+                    dz(i) = elrad*torad
+                elseif( elrad .gt. 0 ) then
+                    dz(i) = rg(i)*elrad*torad
+                else
+                    dz(i) = zrad
+                endif
   16        continue
 c
         endif
@@ -2769,328 +2442,107 @@ c   end of initialization
 c
 c
 c
+c
 c   begin processing the current beam!
 c
 c
-c     LJM (04/29/2009 - commented out this "call radinf" that was
-c     recalculating deltas if using angular radius of influence.
-c     It was producing an odd "clover-leaf looking" pattern in 
-c     the CNT field.  This pattern is a consequence of radinf 
-c     creating a box with dimensions of (dx,dy,dz) that is azimuth
-c     angle dependent, with minima at 0, 90, 180, 270, and 360 deg.
-c------------------------------------------------------------------
-c        if( azrad .gt. 0 .and..not. copln ) then
-c            call radinf( ngts, az*torad, el*torad, rg, 
-c     +          azrad*torad, elrad*torad, rgrad, dx, dy, dz )
-c        endif
-c------------------------------------------------------------------
-c     (LJM - 11/16/2011)
-c     When (adaptive = .true.) this new scheme populates only the NEAREST
-c     output grid points rather than all output grid points within the
-c     user-specified dimensions of the box.  BOX DIMENSIONS are still used
-c     when determining the weighting function (Cressman, Exponential, etc.)
+c   recalculate deltas if using angular radius of influence
+        if( azrad .gt. 0 .and..not. copln ) then
+            call radinf( ngts, az*torad, el*torad, rg, 
+     +          azrad*torad, elrad*torad, rgrad, dx, dy, dz )
+        endif
 c
-c     Adaptive = .true.  ==> Populates only the nearest output grid points.
-c              = .false. ==> Populates all output grid points in the box.
-c------------------------------------------------------------------
-
-c      adaptive = .false.
-
-      if(.not.adaptive)then
-c     
-c     The original algorithm - populate all grid points within the box
-
+c
 c  determine the range of the x indices
-       do 303 i = 1, ngts
-         ixlo(i) = ( x(i)-dx(i)-xmin )*rcpdx +1.
-  303  continue
+      do 303 i = 1, ngts
+        ixlo(i) = ( x(i)-dx(i)-xmin )*rcpdx +1.
+ 303  continue
 c
 c
-       do 305 i = 1, ngts
-         ixhi(i) = ( x(i)+dx(i)-xmin )*rcpdx +1.5
-  305  continue
+      do 305 i = 1, ngts
+        ixhi(i) = ( x(i)+dx(i)-xmin )*rcpdx +1.5
+ 305  continue
 c
 c
-       do 304 igt = 1, ngts
-         if( ixlo(igt) .lt. 1 ) ixlo(igt) = 1
-  304  continue
+      do 304 igt = 1, ngts
+        if( ixlo(igt) .lt. 1 ) ixlo(igt) = 1
+ 304  continue
 c
-       do 306 igt = 1, ngts
-         if( ixhi(igt) .gt. nxval ) then
-             ixhi(igt) = nxval
-         endif
-  306  continue
+      do 306 igt = 1, ngts
+        if( ixhi(igt) .gt. nxval ) then
+            ixhi(igt) = nxval
+        endif
+ 306  continue
 c
 c
 c  determine the range of the y indices
-       do 313 i = 1, ngts
-         iylo(i) = ( y(i)-dy(i)-ymin )*rcpdy +1.
-  313  continue
+      do 313 i = 1, ngts
+        iylo(i) = ( y(i)-dy(i)-ymin )*rcpdy +1.
+ 313  continue
 c
-       do 315 i = 1, ngts
-         iyhi(i) = ( y(i)+dy(i)-ymin )*rcpdy +1.5
-  315  continue
+      do 315 i = 1, ngts
+        iyhi(i) = ( y(i)+dy(i)-ymin )*rcpdy +1.5
+ 315  continue
 c
 c
-       do 314 igt = 1, ngts
-         if( iylo(igt) .lt. 1 ) iylo(igt) = 1
-  314  continue
+      do 314 igt = 1, ngts
+        if( iylo(igt) .lt. 1 ) iylo(igt) = 1
+ 314  continue
 c
-       do 316 igt = 1, ngts
-         if( iyhi(igt) .gt. nyval ) iyhi(igt) = nyval
-  316  continue
+      do 316 igt = 1, ngts
+        if( iyhi(igt) .gt. nyval ) iyhi(igt) = nyval
+ 316  continue
 c
 c
 c  determine the range of the z indices
-       do 323 i = 1, ngts
-          izlo(i) = ( z(i)-dz(i)-zmin )*rcpdz +1.
-             izrg = nint(( z(i)-zmin )*rcpdz+1.)
-c          izlo(i) = izrg-2
-  323  continue
+      do 323 i = 1, ngts
+        izlo(i) = ( z(i)-dz(i)-zmin )*rcpdz +1.
+ 323  continue
 c
-       do 325 i = 1, ngts
-          izhi(i) = ( z(i)+dz(i)-zmin )*rcpdz +1.5
-             izrg = nint(( z(i)-zmin )*rcpdz+1.)
-           izhi(i) = izrg+2
-  325  continue
+      do 325 i = 1, ngts
+        izhi(i) = ( z(i)+dz(i)-zmin )*rcpdz +1.5
+ 325  continue
 c
 c
-       do 324 igt = 1, ngts
-         if( izlo(igt) .lt. 1 ) izlo(igt) = 1
-  324  continue
+      do 324 igt = 1, ngts
+        if( izlo(igt) .lt. 1 ) izlo(igt) = 1
+ 324  continue
 c
-       do 326 igt = 1, ngts
-         if( izhi(igt) .gt. nzval ) izhi(igt) = nzval
-  326  continue
-
-      else
-c     
-c     Adaptive algorithm - populate only nearest grid points
-c     within the box.
+      do 326 igt = 1, ngts
+        if( izhi(igt) .gt. nzval ) izhi(igt) = nzval
+ 326  continue
 c
-c     Determine the range of output grid (x) xyz indices
-c     nearest the input range gate (+) sample locations.
-c
-c                               / N
-c                              +  |
-c                W-- x--------/---x --E
-c                    |       +    |
-c                    |      /     |
-c                    |     +      |
-c                    |    /       |
-c                    |   +        |
-c                    x--/---------x
-c                      +          |
-c                     /           S
-c                  Radar
-c
-c
-c     xmin = axmin(1) - minimum value of x output grid
-c     ymin = axmin(2) - minimum value of y output grid
-c     zmin = axmin(3) - minimum value of z output grid
-c     xmax = axmax(1) - maximum value of x output grid
-c     ymax = axmax(2) - maximum value of y output grid
-c     zmax = axmax(3) - maximum value of z output grid
-c     delx = spacng(1) - spacing of the x output grid
-c     dely = spacng(2) - spacing of the y output grid
-c     delz = spacng(3) - spacing of the z output grid
-c     rcpdx = 1.0/spacng(1) - reciprocal of x spacing
-c     rcpdy = 1.0/spacng(2) - reciprocal of y spacing
-c     rcpdz = 1.0/spacng(3) - reciprocal of z spacing
-c
-        iradius = 1
-        jradius = 1
-        kradius = 2
-
-        do 330 i = 1,ngts
-
-c     Determine nearest output grid point relative
-c     to the current range gate at xyz(i).
-c
-           iclst = nint(1.0 + (x(i)-xmin)*rcpdx)
-           jclst = nint(1.0 + (y(i)-ymin)*rcpdy)
-           kclst = nint(1.0 + (z(i)-zmin)*rcpdz)
-
-c     Set the ijk increments +/- nearest output grid point
-c
-c
-           iwest = iclst - iradius
-           ieast = iclst + iradius
-           jsouth = jclst - jradius
-           jnorth = jclst + jradius
-           kbelow = kclst - kradius
-           kabove = kclst + kradius
- 
-c     Set the output grid indices that are to be 
-c     populated from the current range gate values.
-c
-           ixlo(i) = iwest
-           ixhi(i) = ieast
-           iylo(i) = jsouth
-           iyhi(i) = jnorth
-           izlo(i) = kbelow
-           izhi(i) = kabove
-           if( ixlo(i) .lt. 1 ) ixlo(i) = 1
-           if( iylo(i) .lt. 1 ) iylo(i) = 1
-           if( izlo(i) .lt. 1 ) izlo(i) = 1
-           if( ixhi(i) .gt. nxval ) ixhi(i) = nxval
-           if( iyhi(i) .gt. nyval ) ixhi(i) = nyval
-           if( izhi(i) .gt. nzval ) ixhi(i) = nzval
- 330    continue
-
-      end if
-
-
-
-
-c     LJM (04/29/09) - diagnostic calculations and print
-c
-         earthr=6366.8056
-         cfac=0.375/earthr
- 
-         x_rad=x(1)
-         y_rad=y(1)
-         z_rad=z(1)
-
-c--------print *,'qreo2.F-filter: Earth radius, RadCoord x,y,z=',
-c----+        earthr,x_rad,y_rad,z_rad
- 
-      if(diag_ljm)then        
-         do jj=10,300,10
-            sinaz=sin(az*torad)
-            cosaz=cos(az*torad)
-            sinel=sin(el*torad)
-            cosel=cos(el*torad)
-            xgate=x_rad+rg(jj)*sinaz*cosel
-            ygate=y_rad+rg(jj)*cosaz*cosel
-            hgate=rg(jj)*cosel
-            zcor=cfac*hgate*hgate
-            print *,'qreo2.F-filter: hgate,zcor=',hgate,zcor
-            print *,'qreo2.F-filter: rg(jj)*sinel=',rg(jj)*sinel
-            zgate=z_rad+rg(jj)*sinel+hgate*hgate*cfac
-            xdiff=xgate-x(jj)
-            ydiff=ygate-y(jj)
-            zdiff=zgate-z(jj)
-            zlo = ( z(jj)-dz(jj)-zmin )*rcpdz+1.
-            zrg = ( z(jj)-zmin )*rcpdz+1.
-            zhi = ( z(jj)+dz(jj)-zmin )*rcpdz+1.5
-            write(6,991)az,el,jj,rg(jj),
-     +           x(jj),y(jj),z(jj),
-     +           xgate,ygate,zgate,
-     +           xdiff,ydiff,zdiff,
-     +           dx(jj),dy(jj),dz(jj),
-     +           ixlo(jj),ixhi(jj),
-     +           iylo(jj),iyhi(jj),
-     +           izlo(jj),izhi(jj),
-     +           zlo,zrg,zhi
- 991        format('AzEl=',2f6.2,' jj=',i3,' rg=',f5.2,
-     +     ' xyz=',3f6.2,' xyzgate=',3f6.2,
-     +           ' xyzdiff=',3f7.3,
-     +           ' RaeBox=',3f6.2,' ijk=',6i5,
-     +           ' zlo,zrg,zhi=',3f7.3)
-         end do
-      endif
-c     
 c...mark
 c
 c            
 c
 c   filter loop!
-c     LJM (05/05/09): Outer loop (555) over (ngts) range gates with
-c     an inner loop (466) over (nflds) fields for summations of weights,
-c     weights*field, etc.  These intermediate output values are put in
-c     the array (space) at location [n=offset+atptr(j,i)].  Eventually,
-c     these intermediate values are used to calculate output fields 
-c     [zval=wsum/sumw) in routine wrimud and written out in the 
-c     Cedric file.
 c
-c-----Looping outermost --> innermost (range gates -> z -> y -> x
-c
-c      do 555 - Main outer loop over range gates in a beam
-c         do 503 - Inner loop over z-levels
-c            do 502 - Inner loop over y-levels
-c               do 501 - Inner loop over x-levels
-c               501 continue
-c            502 continue
-c         503 continue
-c      555  continue
 c
       do 555 igt = 1, ngts, igskip
 c
 c
-c     (LJM 11/30/2011): Series of checks on whether or not the xyz location
-c     is within a box with dimensions (xbox, ybox, zbox).  If outside the box, 
-c     don't use this range gate value.  The (xbox, ybox, zbox) values for
-c        adaptive = .true.  are the input grid spacings [delta(1-3)]
-c                   .false. are the input box dimensions (dx,dy,dz)
-c
-c     Check if xyz-distance abs(xyzgrid-xyzgate) is outside the zbox 
-
       do 503 l3=izlo(igt),izhi(igt)
-         if( adaptive )then
-            zbox = kradius * delta(3)
-         else
-            zbox = dz(igt)
-         end if
-        if( abs( zval(l3)-z(igt) ).gt. zbox ) then
+        if( abs( zval(l3)-z(igt) ).gt. dz(igt) ) then
           go to 503
         endif
 c
-c     Check if y-distance abs(ygrid-ygate) is outside the ybox 
-
+c
       do 502 l2=iylo(igt),iyhi(igt)
-         if( adaptive )then
-            ybox = jradius * delta(2)
-         else
-            ybox = dy(igt)
-         end if
-        if( abs( yval(l2)-y(igt) ) .gt. ybox ) then
+        if( abs( yval(l2)-y(igt) ) .gt. dy(igt) ) then
           go to 502
         endif
 c
-c     Check if x-distance abs(xgrid-xgate) is outside the xbox 
-
+c
       do 501 l1=ixlo(igt),ixhi(igt)
-         if( adaptive )then
-            xbox = iradius * delta(1)
-         else
-            xbox = dx(igt)
-         end if
-        if( abs( xval(l1)-x(igt) ) .gt. xbox ) then
+        if( abs( xval(l1)-x(igt) ) .gt. dx(igt) ) then
            go to 501
         endif
-
-c      print *,'In qreo2-filter: adaptive=',adaptive
-
-        if(diag_ljm .and. igt .eq.101)then
-           write(6,1771)
-     +        l3,l2,l1,zval(l3),yval(l2),xval(l1),
-     +        z(igt),y(igt),x(igt),
-     +        delta(3),delta(2),delta(1)
- 1771      format(' qreo2.F-filter: l321,zyx grd, zyx rg=, d zyx=',
-     +          3i4,9f8.2)
-        end if
-
-c     Original formulation of bigrsq and rsq
-c     Cressman: w = (bigrsq-rsq)/(bigrsq+rsq)
-c                 = (1-rsq/bigrsq)/1+rsq/bigrsq)
-c      with ddsqr = rsq/bigrsq, then
-c               w = (1-ddsqr)/(1+ddsqr)
 c
         bigrsq = dx(igt)**2 + dy(igt)**2 + dz(igt)**2
-
+c
         rsq = (xval(l1)-x(igt))**2 + (yval(l2)-y(igt))**2 +
      a    (zval(l3)-z(igt))**2
-
-        ddsqr = rsq/bigrsq
-
-c     Alternative formulation with separate radii
-c     for each coordinate - not used yet (ljm 11/09)
-c
-c        xsqr = (xval(l1)-x(igt))**2/dx(igt)**2
-c        ysqr = (yval(l2)-y(igt))**2/dy(igt)**2
-c        zsqr = (zval(l3)-z(igt))**2/dz(igt)**2
-c        dsqr = xsqr + ysqr + zsqr
 c                             
 c
 c  determine the box no.
@@ -3108,23 +2560,11 @@ c
         go to ( 361, 362, 400, 364 ), wtfun
  361    continue
 c   cressman weighting
-c        w = (bigrsq-rsq)/(bigrsq+rsq)
-        w = (1. - ddsqr)/(1. + ddsqr)
-
-        if(w.lt.0.0)then
-           w = 0.0
-
-c     LJM (04/29/09) - diagnostic print
-c
-c----------print *,'Cressman w .lt.0',w
-
-        endif
-
+        w = (bigrsq-rsq)/(bigrsq+rsq)
         go to 400
  362    continue
 c   exponential weighting
-c        w = exp(atten*rsq/bigrsq)
-        w = exp(atten*ddsqr)
+        w = exp(atten*rsq/bigrsq)
         go to 400
  364    continue
 c   uniform weighting
@@ -3137,17 +2577,6 @@ c   for each field
 c
         do 466 i = 1, nflds
 c
-       
-c     Print pointers, etc associated with each field - LJM 07/12/2010
-c
-c           if((az.gt.110.0 .and. az.lt.115.0) .and.
-c     +        (el.gt.0.25 .and. el.lt.0.75)   .and.
-c     +          igt.eq.50)then
-c              print *,"i,fldtyp,fldoff,nyqptr,unfflg,unfptr,zlard=",
-c     +             i,fldtyp(i),fldoff(i),nyqptr(i),unfflg(i),unfptr(i),
-c     +             zref
-c           endif
-
             if( unfflg(i)) then
 c   unfold
                 zdata = flds( igt + fldoff(i))
@@ -3162,38 +2591,22 @@ c   unfold
                 endif
                 go to 417
             endif
-
-c           Branch to get the requested type of field
-c
-c   fldtyp  =   type of field   
-c                   1 = normal data (no conversion before interpolate)
-c                   2 = dbz or db field 
-c                       (db --> linear --> interpolate --> db)
-c                       Values that come from houskeeping information
-c                   3 = time
-c                   4 = azimuth
-c                   5 = elevation
-c                   6 = range
-c                   7 = height above curved Earth (km MSL)
-c                   8 = 
-c                   9 = k or the weighted number of folds
-c                  10 = field created by function FSPECL 
-c
-            go to ( 401, 401, 403, 404, 405, 406, 407
+c       
+            go to ( 401, 401, 403, 404, 405, 406, 466
      +              , 466, 417, 401 ), fldtyp(i)
 c       
             call panic( '** Bad field type **' )
 c       
   401       continue
-c     (fldtyp = 1 or 2) just use the input data point
+c       just use the data point
             zdata = flds( igt + fldoff(i))
             go to 417
   403       continue
-c     (fldtyp = 3) time as a field             
+c       time!                               
             zdata = itm
             go to 417
   404       continue
-c     (fldtyp = 4) azimuth angle as a field
+c       azimuth
             zdata = az
     	    zref = space(offset+unfptr(i))
             if( oftyp(i) .eq. 25 ) then
@@ -3211,7 +2624,7 @@ c        closest point
     	    endif
             go to 417
   405       continue
-c     (fldtyp = 5) elevation angle as a field   
+c       elevation   
             zdata = el
     	    zref = space(offset+unfptr(i))
             if( oftyp(i) .eq. 25 ) then
@@ -3229,61 +2642,8 @@ c        closest point
     	    endif
             go to 417
   406       continue
-c     (fldtyp = 6) slant range as a field
+c       range
             zdata = rg(igt)
-            go to 417
-  407       continue
-c     (fldtyp = 7) zmsl as a field
-c     ZMSL field (#7) --> zgate --> zdata (LJM 11/1/2011)
-c       height above curved Earth (km MSL)
-c------------------------------------------------------
-c  To convert to height MSL, change z(i) calculation to 
-c         z(i) = salti + r(i)*sinel + cfac*slantr*slantr
-c  Note:  If r(i) is distance to a range gate (slant range), 
-c         then the variable slantr = horizontal (not slant) range.
-c------------------------------------------------------
-c     Temporarily replaced elevation angle with the
-c     height of the data point, either with or 
-c     without a 4/3 earth correction. (LJM 11/1/2010) 
-c------------------------------------------------------
-c
-c-----------if(igt.eq.250)print *,'igt,rg,az,el=',igt,rg(igt),az,el
-            earthr=6366.8056
-            cfac=0.375/earthr
-            sinaz=sin(az*torad)
-            cosaz=cos(az*torad)
-            sinel=sin(el*torad)
-            cosel=cos(el*torad)
-            xgate=x_rad+rg(igt)*sinaz*cosel
-            ygate=y_rad+rg(igt)*cosaz*cosel
-            hgate=rg(igt)*cosel
-            zcor=cfac*hgate*hgate
-
-c     Generation of the ZMSL field (#7) --> zgate --> zdata (LJM 11/1/2011)
-c     Flat earth do not include zcor; otherwise do include zcor..
-c     Note: z_rad - height of the radar (km MSL)
-c           zflat - range gate height above flat earth (km MSL)
-c           zcor  - height correction for a 4/3 earth radius
-c           zcrvd - range gate height above flat earth (km MSL)
-c
-            zflat = z_rad + rg(igt)*sinel
-            zcrvd = zflat + zcor
-
-c     Confirmation printout (LJM 10/26/2011) for zmsl field
-            if(mod(igt,3000) .eq. 0 .and. abs(el) .le. 0.5)then
-               write(6,1772)igt,x_rad,y_rad,z_rad,az,el,
-     +              rg(igt),hgate,xgate,ygate,zcor,zflat,zcrvd
- 1772          format(
-     +              ' igt,xyz_rad,az,el,srng,hrng,xy_gate=',i3,9f10.3,
-     +              ' zcor,zflat,zcrvd=',3f10.3)
-            end if
-
-            if (flat)then
-               zdata = zflat
-            else
-               zdata = zcrvd
-            end if
-c------------------------------------------------------
             go to 417
 c       
   417       continue

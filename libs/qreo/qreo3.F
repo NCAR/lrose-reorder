@@ -1,6 +1,7 @@
 c--------------------------------------------------------------------------
 c--------------------------------------------------------------------------
 c..file:reo3.for
+c
 c  this file contains the following routines
 c     mximyz-----Determines "a" and "b" such that the product is
 c                closest to "n".  Used to determine the number of x- 
@@ -66,19 +67,14 @@ c
 c===========================================================================
 c___qcommon.for
 c
-c       Increased mxfld from 16 to 30 - LJM 06/09/2010
-c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
-c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
-c       Increased maxval from 500 to 2000 - LJM 06/28/2010
-c
-    	parameter( maxcart=4001, sizcart=2048 )
+    	parameter( maxcart=4001, sizcart=1024 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
-        parameter( maxval=2000 )
+        parameter( maxval=500 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
-        parameter( mxfld=30, mxsfld=120  )
+        parameter( mxfld=16, mxsfld=20  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -109,22 +105,15 @@ c
      +,     zlard(50)
 c
 c
-c   acs     =   user-specified input "attribute:parameter;" stream
-c               compressed into a large, continuous, without spaces
-c               stream starting with ";"
-c   ncas    =   the length of acs is typically ~600-800 characters, but
-c               cannot exceed 2222 (see subroutine reo)
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
-c                   1 = normal data (no conversion before interpolate)
-c                   2 = dbz or db field 
-c                       (db --> linear --> interpolate --> db)
-c                       Values that come from houskeeping information
+c                   1 = normal data
+c                   2 = dbz field
 c                   3 = time
 c                   4 = azimuth
 c                   5 = elevation
 c                   6 = range
-c                   7 = height above curved Earth (km MSL)
+c                   7 = 
 c                   8 = 
 c                   9 = k or the weighted number of folds
 c                  10 = field created by function FSPECL 
@@ -170,19 +159,14 @@ c
 c   nlards  =   number of spaces used up in "zlard"
 c   zlard   =   extra space for special parameters such as the nyquist vel.
 c
-        character*512 mnames
-        character*64 fldmne
+        character*256 mnames
+        character*32 fldmne
         common / fldcomc /  fldmne,     mnames
+c   fldmne  =   the original 2 character source field mnemonic
+c   mnames  =   character data--8 character names of the output fields
 c
-c   fldmne  =   the original 2-character source field mnemonic
-c   mnames  =   8-character names of the output fields
 c
-c   Note: mnames and fldmne must be increased to allow for mxfld=30 
-c         names of 2-character source and 8-character output field names
-c         Increased the size of fldmne from 32 to 64 and the size of 
-c         mnames from 256 to 512 - LJM 06/09/2010
-c
-        parameter(  mxcomp=50, mxtot=mxfld+mxsfld  )
+        parameter(  mxcomp=8, mxtot=mxfld+mxsfld  )
 c
         integer noutf, ncomp, comptr, oftyp, namptr, bsflag
         integer octthr
@@ -415,19 +399,14 @@ c
 c===========================================================================
 c___qcommon.for
 c
-c       Increased mxfld from 16 to 30 - LJM 06/09/2010
-c       Increased mxsfld from 20 to 120 - LJM 06/14/2010
-c       Increased mxcomp from 8 to 50 - LJM 06/14/2010
-c       Increased maxval from 500 to 2000 - LJM 06/28/2010
-c
-    	parameter( maxcart=4001, sizcart=2048 )
+    	parameter( maxcart=4001, sizcart=1024 )
         parameter( inull=-32768 )
         parameter( znull=-32768., wmin=-1000000., wmax=1000000. )
-        parameter( maxval=2000 )
+        parameter( maxval=500 )
         parameter( maxspc=maxcart*sizcart )
         parameter( maxgt=2048)
         parameter( mxg3=3*maxgt )
-        parameter( mxfld=30, mxsfld=120  )
+        parameter( mxfld=16, mxsfld=20  )
 c           
         integer nflds, fldtyp, fldoff
         integer wtfun, wtfptr, unfptr
@@ -460,15 +439,13 @@ c
 c
 c   nflds   =   the number of source data fields 
 c   fldtyp  =   type of field   
-c                   1 = normal data (no conversion before interpolate)
-c                   2 = dbz or db field 
-c                       (db --> linear --> interpolate --> db)
-c                       Values that come from houskeeping information
+c                   1 = normal data
+c                   2 = dbz field
 c                   3 = time
 c                   4 = azimuth
 c                   5 = elevation
 c                   6 = range
-c                   7 = height above curved Earth (km MSL)
+c                   7 = 
 c                   8 = 
 c                   9 = k or the weighted number of folds
 c                  10 = field created by function FSPECL 
@@ -514,19 +491,14 @@ c
 c   nlards  =   number of spaces used up in "zlard"
 c   zlard   =   extra space for special parameters such as the nyquist vel.
 c
-        character*512 mnames
-        character*64 fldmne
+        character*256 mnames
+        character*32 fldmne
         common / fldcomc /  fldmne,     mnames
+c   fldmne  =   the original 2 character source field mnemonic
+c   mnames  =   character data--8 character names of the output fields
 c
-c   fldmne  =   the original 2-character source field mnemonic
-c   mnames  =   8-character names of the output fields
 c
-c   Note: mnames and fldmne must be increased to allow for mxfld=30 
-c         names of 2-character source and 8-character output field names
-c         Increased the size of fldmne from 32 to 64 and the size of 
-c         mnames from 256 to 512 - LJM 06/09/2010
-c
-        parameter(  mxcomp=50, mxtot=mxfld+mxsfld  )
+        parameter(  mxcomp=8, mxtot=mxfld+mxsfld  )
 c
         integer noutf, ncomp, comptr, oftyp, namptr, bsflag
         integer octthr
@@ -569,8 +541,8 @@ c
 c
 c  workspace and workspace management
 c
-      real scrx(*)
-      integer iscrx(*)
+      real scrx(1)
+      integer iscrx(1)
       parameter( radian=57.29578 )
 c
 c
@@ -599,7 +571,7 @@ c
         common  / datset /      slong,          slati,          salti
      +,         dlong,          dlati,          dalti,          dbase
      +,         axmin(3),       axmax(3),       radius(3),    delta(3)
-     +,         deltai(3),      numval(3),      spacng(3),ijk_radii(3)
+     +,         deltai(3),      numval(3),      spacng(3)
      +,         tref,           values(maxval,3)
 c 
       integer tref
@@ -610,10 +582,8 @@ c
 c 
       logical flash, dbz
 c
-c     Increased iname and name_netcdf from 66 to 256 - LJM 06/28/2010
-c
-    	integer iname(256)
-    	integer name_netcdf(256)
+    	integer iname(66)
+    	integer name_netcdf(66)
         character*222 tname
         character*128 ll
         character tmp*8
@@ -630,22 +600,6 @@ code
 c>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 c
 c
-c       LJM - debug print
-c
-        print *,'qreo3:wrimud: maxcart, sizcart, maxspc, noutf=',
-     +       maxcart, sizcart, maxspc, noutf
-
-c     LJM - debug print of information for each (ofn) of noutf
-c           fields. See do 530 ofn = 1, noutf loop below.  That
-c           loop is over all levels, but print here only once 
-        do ofn = 1, noutf
-           icase = oftyp(ofn)-20
-           mm = mnptr(ofn)
-           print *,'qreo3:wrimud: ofn,oftyp,name=',
-     +          ofn,oftyp(ofn),mnames(mm:mm+7)
-        enddo
-
-
         call dmplin( 'c...mark   ', 8 )
 c        call dmplin( '**wrimud**', 10 )
         copln = namefx( 'COPLANE', i ) .ne. 0
@@ -679,7 +633,6 @@ c  finish volume header
       call putasc( hedrec, 1, tmp, 8 )
 c
     	i = cedwrt( hedrec, HEADER_LEN*2 )
-
 c
 c 
 c 
@@ -706,8 +659,8 @@ c
       else
         call zipstr( ' KM. ^', ll, c )
       endif
-      call zncode( ll, c, 5, 1, numval(1)*numval(2), x, 0 )
-      call zipstr( ' XY Grid Points^', ll, c )
+        call zncode( ll, c, 5, 1, numval(1)*numval(2), x, 0 )
+    	call zipstr( ' Grid Points^', ll, c )
       call putc( ll, c, '^' )
       call typstg( lunout(), ll, 1, 0 )
 c
@@ -798,8 +751,7 @@ c_______________________________________________________________________
             vstd = 0.0
             vsqr = ( nq*sumsq - sum*sum ) / (nq*(nq-1))
             if( vsqr .gt. 0.0 ) vstd =  sqrt( vsqr )
-            zval = 1. - vstd / (znyqve/1.732050808)
-            zval = 100.0*zval
+            zval = 1. - vstd / (znyqve/1.73205808)
             iscrx(l1)=nint(scale*zval)
         else
             zval = znull
@@ -978,21 +930,10 @@ c
  600  continue
  
         call dmplin( 'c...mark   ', 8 )
-
-c     bsmud is called to display the cedric output as a
-c     alphanumeric display within the printout.
-c
-c     reonetcdf within xcedio.c is called to output the Cedric binary 
-c     format as a netCDF format file.  Note that netCDF also has the 
-c     lat/lon of the lower left hand corner of the XY grid.  That 
-c     conversion from XY to LL is done with code added by Dennis 
-c     Flanigan in April 2009.  See comment at the top of the
-c     xcedio.c code.  That code is not used elsewhere. (LJM - 12/6/2010)
-
         call bsmud( lunwri, outrec, space, acs, 1, nacs,
      +      syms, nsym )
         if(nncdf .gt. 0) then
-           call reonetcdf(name_netcdf, nncdf)
+    	call reonetcdf(name_netcdf, nncdf)
 	endif
     	call cedcls()
         return 
@@ -1048,13 +989,12 @@ c----------------------------------------------------------------------
         subroutine bsmud( lun, kbuf, scr, acs, a1, a2,
      +      syms, nsym )
 c  this routine does a display of the mudras data volume on "lun".
-c       Increased maxval from 500 to 2000 - LJM 06/28/2010
 c
         implicit integer( a-z )
     	parameter(HEADER_LEN=510)
       	parameter(LEVEL_LEN=10)
         character   acs*(*), syms*(*)
-        parameter( maxval=2000 )
+        parameter( maxval=500 )
         parameter( maxcf=25*8 )
         character*444 flist
         character*8 ll
@@ -1103,8 +1043,7 @@ c
 c
         call bfill( flist, 1, maxcf )
 c  number of fields             
-        nf = iget16( kbuf, 175 )
-        print *,'Routine bsmud: nf=',nf
+        nf = iget16( kbuf, 175 )   
         j = 176
         do 11 ff = 1, nf
 c  get the name and scale factor
@@ -1238,7 +1177,6 @@ c   set up display parameters by looping thru input control string
             go to 44
         endif
         call nxtatt( acs, ae+1, a2, f1, nch, ae )
-
         call attarg( acs, f1, ae, 1, aa, na )
 c
         if( same( acs, f1, 3, 'DISPLAY', 1 )) then

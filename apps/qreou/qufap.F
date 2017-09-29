@@ -1,7 +1,6 @@
 c  file:ufap.for
 c  $Revision: 1.1.1.1 $ $Date: 2002/08/07 16:03:06 $
-c   this file contains routines (fortran functions, not
-c   subroutines).
+c   this file contains routines
 c
 c   	givgts
 c   	givrng
