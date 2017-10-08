@@ -26,6 +26,11 @@
 # define YES 1
 # define NO 0
 
+# include <endian.h>
+# if __BYTE_ORDER == __LITTLE_ENDIAN
+# define LITTLENDIAN
+# endif
+
 struct ced_file_head {
     char descriptor_name[4];	/* should contain "CED1" */
     int byte_ordering;
@@ -214,8 +219,8 @@ struct ced_file_info {
 };
 struct ced_file_info *cfi=NULL;
 struct ced_file_head *cfhead=NULL;
-FILE *cedstrm;
-FILE *scrstrm;
+FILE *cedstrm = NULL;
+FILE *scrstrm = NULL;
 static int rlens;
 char scratch_name[88];
 
@@ -594,6 +599,12 @@ cedopn_(name,n,isize)
     
 	printf(" Real cedric file name is %s\n", a );
 	cedstrm = fopen( a, "w+" );
+        if (cedstrm == NULL) {
+          perror(a);
+          fprintf(stderr, "ERROR - cannot open cedric file: %s\n", a);
+          fprintf(stderr, "  Make sure directory exists\n");
+          exit(1);
+        }
 	
 	strncpy(cfhead->descriptor_name, "CED1", 4 );
 	cfhead->byte_ordering = CED_BIG_ENDIAN;
@@ -661,6 +672,12 @@ opnscr_(dummy1, lenrec, dummy2 )
 
     strcat( scratch_name, pid );
     scrstrm = fopen( scratch_name, "w+" );
+    if (scrstrm == NULL) {
+      perror(scratch_name);
+      fprintf(stderr, "ERROR - cannot open scratch file: %s\n", scratch_name);
+      fprintf(stderr, "  Make sure directory exists\n");
+      exit(1);
+    }
     rlens = *lenrec*4;
 }
 /* c------------------------------------------------------------------------ */
@@ -684,7 +701,9 @@ clsscr_()
 {
     char command[99];
 
-    fclose(scrstrm);
+    if (scrstrm) {
+      fclose(scrstrm);
+    }
     sprintf( command, "rm " ); 
     strcat( command, scratch_name );
     system( command );
@@ -745,6 +764,9 @@ branwt_( lrec, buf, isize )
     /*
      * position to write logical record lrec of isize 16-bit words
      */
+  if (scrstrm == NULL) {
+    return 0;
+  }
     int i = fseek( scrstrm, (long)((*lrec -1)*rlens), (int)0 );
     i = fwrite( (char *)buf, rlens, 1, scrstrm );
     return( i );
@@ -755,6 +777,9 @@ branrd_( lrec, buf, isize )
   int *buf, *lrec, *isize;
 {
     int i;
+  if (scrstrm == NULL) {
+    return 0;
+  }
     /*
      * position to write logical record lrec of isize 16-bit words
      */

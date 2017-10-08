@@ -110,7 +110,7 @@ int Sparc_Arch=NO;
 # ifdef linux
 # include <endian.h>
 
-# if BYTE_ORDER == LITTLE_ENDIAN
+# if __BYTE_ORDER == __LITTLE_ENDIAN
 int LittleEndian = 1;
 # else
 int LittleEndian = 0;

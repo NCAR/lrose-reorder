@@ -195,7 +195,7 @@ struct param_desc {
 };
 
 struct dual_pol_mode {
-#ifdef LITTLENDIAN
+#if __BYTE_ORDER == __LITTLE_ENDIAN
     unsigned int dual_polar :  1; /* Dual Polarization Mode Enable */
     unsigned int zdr_limit  :  1; /* ZDR limit enable (0 = folding) */
 

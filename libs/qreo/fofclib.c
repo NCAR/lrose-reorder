@@ -24,10 +24,6 @@
  * xtrkt8_
  */
 
-# ifdef LITTLENDIAN
-# else
-# endif
-
 # include <sys/types.h>
 # include <sys/file.h>
 # include <stdio.h>
@@ -36,6 +32,11 @@
 # include <time.h>
 # include <stdlib.h>
 # include <string.h>
+
+# include <endian.h>
+# if __BYTE_ORDER == __LITTLE_ENDIAN
+# define LITTLENDIAN
+# endif
 
 # ifdef titan
 

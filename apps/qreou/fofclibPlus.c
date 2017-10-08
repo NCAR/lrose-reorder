@@ -8,6 +8,11 @@
 # include <string.h>
 # include <stdlib.h>
 
+# include <endian.h>
+# if __BYTE_ORDER == __LITTLE_ENDIAN
+# define LITTLENDIAN
+# endif
+
 # define NDRIVE 20	/* Must be bigger than 8 (to use device /dev/rmt8) */
 static int Fds[NDRIVE] = { 0 };
 static int Status[NDRIVE] = { 0 };
