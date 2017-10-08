@@ -1,0 +1,45 @@
+#!/bin/csh
+# Script to run REORDER
+setenv SCRATCH /home/Data/calwater_2011/radar
+#
+echo REORDER 
+#
+# /home/dkingsmill/old_reorder/Reorder-master/bin/qreod << reoics >! testreo_new.log
+qreod << reoics >! testreo_new.log
+RLONGITUDE:-121.67778; RLATITUDE:38.50111; RALTITUDE:0.0392;
+GLONGITUDE:-121.35588; GLATITUDE:38.90060; GALTITUDE:0.0000;
+OUTPUT:"/home/Data/calwater_2011/radar/kdax/reo/testreo_new.preo";
+NETCDF:"/home/Data/calwater_2011/radar/kdax/reo/";
+DIRECTORY:"/home/Data/calwater_2011/radar/kdax/dorade";
+XMIN:-170.0; XMAX:120.0; YMIN:-100.0; YMAX:120.0;
+ZMIN:1.0; ZMAX:6.0;
+XSPACING:2.0; YSPACING:2.0; ZSPACING:1.0;
+XRADIUS:2.4; YRADIUS:2.4; ZRADIUS:1.2; 
+BOXDIM:"CARTESIAN";
+DBZFIELD:DZ,DZ; INSTRUMENT:"KDAX";
+FIELD:VE,VE;
+START:16-Feb-11,00:00:00;
+STOP:16-Feb-11,23:59:59;
+EARTHRADIUS:6366.8056;
+WEIGHTING FUNCTION: EXPONENTIAL,-15;
+GBASELINE:90.0;
+SPANVOLUMES; NOREMOVE;
+ADJUST_Z;
+quit;
+reoics
+#
+#
+# Use CEDRIC to create an appropriate CDF file for the 
+# interpolation output
+#
+ln -s /home/Data/calwater_2011/radar/kdax/reo/testreo_new.preo fort.10
+ln -s /home/Data/calwater_2011/radar/kdax/reo/testreo_new.cdf fort.60
+#
+cedric << r2c  >! r2c.log 
+READVOL 10      NEXT                    NO
+WRITVOL 60                      BEG                     CDF
+QUIT
+r2c
+#
+/bin/rm fort.*
+#
