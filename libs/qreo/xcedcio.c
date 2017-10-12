@@ -18,6 +18,9 @@
 # include <netcdf.h>
 # endif
 # include <stdlib.h>
+# include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 # define RADIANS(x) ((x)*0.017453292)
 # define MAX_FILES 25
@@ -199,10 +202,13 @@ int DTime;			/* Time dimension		*/
 # ifdef LITTLENDIAN
 # endif
 
+#define MAX_PATH_LEN 1024
+#define PATH_DELIM "/"
+
 /*
  * Radius of the earth, in km
  */
-# define R_EARTH	6372.
+# define R_EARTH  6378.137
 
 /*
  * Origin latitude and longitude (radians)
@@ -217,27 +223,64 @@ struct ced_file_info {
     int offsets[MAXFLD];
     int vol_size[MAXFLD];
 };
-struct ced_file_info *cfi=NULL;
-struct ced_file_head *cfhead=NULL;
-FILE *cedstrm = NULL;
-FILE *scrstrm = NULL;
+
+static struct ced_file_info *cfi=NULL;
+static struct ced_file_head *cfhead=NULL;
+static FILE *cedstrm = NULL;
+static FILE *scrstrm = NULL;
 static int rlens;
-char scratch_name[88];
+static char scratch_name[MAX_PATH_LEN];
+static char scratch_dir[MAX_PATH_LEN];
+
+static int makedir(const char *path);
+static int ta_makedir(const char *path);
+static int ta_makedir_recurse(const char *path);
+static int ta_makedir_for_file(const char *file_path);
+
+static void cvt_Origin (double lat, double lon);
+static void cvt_ToLatLon (double x, double y, double *lat, double *lon);
+static void cvt_ToXY (double lat, double lon, double *x, double *y);
+
+static void setScratchDir();
+
+/********************************************************/
+
+/* set scratch dir */
+
+static void setScratchDir()
+{
+
+  if (getenv("SCRATCH") == NULL) {
+    printf("\n\n");
+    printf("**** WARNING: SCRATCH var not set.\n");
+    printf("***  Writing scratch files to /tmp\n");
+    sprintf(scratch_dir, "/tmp");
+  } else {
+    sprintf(scratch_dir, getenv("SCRATCH"));
+    if (ta_makedir_recurse(scratch_dir)) {
+      perror(scratch_dir);
+      fprintf(stderr, "Cannot make output dir: %s\n", scratch_dir);
+      exit(1);
+    }
+  }
+
+}
 
 /* c------------------------------------------------------------------------ */
 
-reonetcdf_(prefix, np)
-  int *prefix, *np;
+int reonetcdf_(int *prefix,
+               int *np)
 {
     /* c...mark */
     int ii, nn, nfields=0;	/* just use the fields and names as is */
     int vol_num=1;
-    char file_name_prefix[128], str[128], *a, *b, *c;
+    char file_name_prefix[MAX_PATH_LEN], str[MAX_PATH_LEN], *a, *b, *c;
     char **src_ids, **dst_ids;
     float rr_earth=6300.;
     struct ced_fixes cf;
 
 # ifdef NETCDF
+
     a = str;
     dst_ids = src_ids = &a;
     cedrwd_();			/* position to absorb cedric data */
@@ -254,20 +297,28 @@ reonetcdf_(prefix, np)
     else if(*b != '/') {
 	strcat(a, "/");
     }
+    if (ta_makedir_recurse(a)) {
+      perror(a);
+      fprintf(stderr, "Cannot make output dir: %s\n", a);
+      exit(1);
+    }
 
     ced_netcdf(cedstrm, nfields, src_ids, dst_ids, a
 	       , &cf, vol_num);
 # endif
+
 }
 /* c------------------------------------------------------------------------ */
 
 # ifdef NETCDF
-ced_netcdf(cedstrm, nfields, src_ids, dst_ids, file_name_prefix
-	   , cf, vol_num)
-  FILE *cedstrm;
-  int nfields, vol_num;
-  char **src_ids, **dst_ids, *file_name_prefix;
-  struct ced_fixes *cf;
+int ced_netcdf(FILE *cedstrm, 
+               int nfields, 
+               char **src_ids, 
+               char **dst_ids, 
+               char *file_name_prefix,
+               struct ced_fixes *cf,
+               int vol_num)
+
 {
     int ii, nn, fld, nflds, bv, dx, dy, dz, nb, rs, dims[4], level, nxy;
     int mark;
@@ -434,6 +485,8 @@ ced_netcdf(cedstrm, nfields, src_ids, dst_ids, file_name_prefix
 	    , mh->mh_Hour, mh->mh_Minute, mh->mh_Second);
     
     Nfile = nccreate (fname, NC_CLOBBER);
+    fprintf(stderr, "Writing NetCDF file: %s\n", fname);
+
     /*
      * Make some dimensions.
      */
@@ -546,9 +599,8 @@ ced_netcdf(cedstrm, nfields, src_ids, dst_ids, file_name_prefix
 # endif
 /* c------------------------------------------------------------------------ */
 
-char *end_string(srs, n, dst)
-  char *srs, *dst;
-  int n;
+char *end_string(char *srs, int n, char *dst)
+
 {
     /* take "n" characters of srs
      * remove trailing blanks
@@ -570,11 +622,12 @@ char *end_string(srs, n, dst)
 }
 /* c------------------------------------------------------------------------ */
 
-cedopn_(name,n,isize)
-  char *name;
-  int *n, *isize;
+int cedopn_(char *name,  int *n, int *isize)
 {
-    char real_name[222];
+
+    setScratchDir();
+
+    char real_name[MAX_PATH_LEN];
     int ii, jj, kk, rslt;
     size_t sof, offs;
     char *a=name;
@@ -589,10 +642,7 @@ cedopn_(name,n,isize)
 
 	if( !strchr(name, '/')) {	/* construct the name */
 	    a = real_name;
-	    if(getenv("SCRATCH"))
-		  sprintf(a, "%s/", getenv("SCRATCH"));
-	    else
-		  sprintf(a, "./");
+            sprintf(a, "%s/", scratch_dir);
 	    strcat( a, name );
 	    strcat( a, ".ced" );
 	}
@@ -652,25 +702,18 @@ cedopn_(name,n,isize)
 }
 /* c------------------------------------------------------------------------ */
 
-opnscr_(dummy1, lenrec, dummy2 )
-  int *lenrec, *dummy1, *dummy2;
+int opnscr_(int *dummy1, int *lenrec, int *dummy2 )
 {
-    char pid[12];
-    int getpid();
+
+    char pid[128];
+    const char *scratchDir = NULL;
 
     sprintf(pid, "%d", getpid());
 
-    if(getenv("SCRATCH"))
-         sprintf(scratch_name, "%s/reo-", getenv("SCRATCH"));
-    else
-    { 
-         printf("\n\n**** ERROR: Unable to produce output files.\n");
-         printf("Make sure to set the SCRATCH environment variable\n");
-	 printf("to the desired output directory.  Exiting. ****\n");
-         exit (1);
-    }
+    setScratchDir();
 
-    strcat( scratch_name, pid );
+    sprintf(scratch_name, "%s/reo-", scratch_dir);
+    strcat(scratch_name, pid );
     scrstrm = fopen( scratch_name, "w+" );
     if (scrstrm == NULL) {
       perror(scratch_name);
@@ -682,13 +725,13 @@ opnscr_(dummy1, lenrec, dummy2 )
 }
 /* c------------------------------------------------------------------------ */
 
-cedcls_()
+int cedcls_()
 {
     fclose(cedstrm);
 }
 /* c------------------------------------------------------------------------ */
 
-cedloc_()
+int cedloc_()
 {
     /* return the offset to the current postion on the disk
      */
@@ -697,7 +740,7 @@ cedloc_()
 }
 /* c------------------------------------------------------------------------ */
 
-clsscr_()
+int clsscr_()
 {
     char command[99];
 
@@ -710,8 +753,7 @@ clsscr_()
 }
 /* c------------------------------------------------------------------------ */
 
-cedrd_( buf, isize )
-  int *buf, *isize;
+int cedrd_( int *buf, int *isize )
 {
     /*
      * position to write logical record lrec of isize 16-bit words
@@ -721,8 +763,7 @@ cedrd_( buf, isize )
 }
 /* c------------------------------------------------------------------------ */
 
-cedwrt_( buf, isize )
-  int *buf, *isize;
+int cedwrt_( int *buf, int *isize )
 {
     /*
      * write isize bytes
@@ -732,7 +773,7 @@ cedwrt_( buf, isize )
 }
 /* c------------------------------------------------------------------------ */
 
-cedrwd_()
+int cedrwd_()
 {
     /*
      * Position to the start of the last volume
@@ -758,8 +799,8 @@ cedrwd_()
 }
 /* c------------------------------------------------------------------------ */
 
-branwt_( lrec, buf, isize )
-  int *buf, *lrec, *isize;
+int branwt_( int *lrec, int *buf, int *isize )
+
 {
     /*
      * position to write logical record lrec of isize 16-bit words
@@ -773,8 +814,7 @@ branwt_( lrec, buf, isize )
 }
 /* c------------------------------------------------------------------------ */
 
-branrd_( lrec, buf, isize )
-  int *buf, *lrec, *isize;
+int branrd_( int *lrec, int *buf, int *isize )
 {
     int i;
   if (scrstrm == NULL) {
@@ -790,9 +830,7 @@ branrd_( lrec, buf, isize )
 }
 /* c------------------------------------------------------------------------ */
 
-long
-TC_FccToSys (fcc)
-UItime *fcc;
+long TC_FccToSys (UItime *fcc)
 /*
  * Convert an FCC time into a system time.
  */
@@ -856,9 +894,7 @@ UItime *fcc;
 
 /* c------------------------------------------------------------------------ */
 
-long
-TC_ZtToSys (zt)
-ZebTime *zt;
+long TC_ZtToSys (ZebTime *zt)
 /*
  * Convert a zeb format time into a basic system format representation.
  */
@@ -868,8 +904,8 @@ ZebTime *zt;
 
 /* c----------------------------------------------------------------------- */
 
-cvt_Origin (lat, lon)
-  double lat, lon;
+static void cvt_Origin (double lat, double lon)
+
 /*
  * Use lat,lon (deg) as the reference location for 
  * latitude,longitude <-> x,y conversions
@@ -891,8 +927,8 @@ cvt_Origin (lat, lon)
 }
 /* c------------------------------------------------------------------------ */
 
-cvt_ToLatLon (x, y, lat, lon)
-  double x, y, *lat, *lon;
+static void cvt_ToLatLon (double x, double y, double *lat, double *lon)
+
 /*
  * Convert x and y (km) to lat and lon (deg)
  */
@@ -949,10 +985,8 @@ cvt_ToLatLon (x, y, lat, lon)
 }
 /* c----------------------------------------------------------------------- */
 
-void
-cvt_ToXY (lat, lon, x, y)
-  double lat, lon;
-  double *x, *y;
+static void cvt_ToXY (double lat, double lon, double *x, double *y)
+
 /* 
  * Convert lat and lon (deg) to x and y (km) using azimuthal 
  * orthographic projection
@@ -979,4 +1013,215 @@ cvt_ToXY (lat, lon, x, y)
 /* c------------------------------------------------------------------------ */
 
 /* c----------------------------------------------------------------------- */
+
+/*************************************************
+ * Directory creation routine
+ *
+ * Nancy Rehak, Rap, NCAR, Boulder, CO, 80303, USA
+ *
+ * Updated by Mike Dixon, Feb 1999.
+ *
+ * March 1996
+ */
+
+// copy string safely
+
+static char *STRncopy(char *s1, const char *s2, int maxs1)
+{
+  if (!s1 || !s2)
+    return NULL;
+  
+  if (maxs1 > 0)
+  {
+    strncpy(s1, s2, (size_t) (maxs1-1));
+    s1[maxs1-1] = '\0';
+  }
+  return(s1);
+}
+
+/********************************************************
+ * makedir()
+ *
+ * Utility routine to create a directory.  If the directory
+ * already exists, does nothing.
+ *
+ * Returns -1 on error, 0 otherwise.
+ */
+
+static int makedir(const char *path)
+{
+  return (ta_makedir(path));
+}
+
+/********************************************************
+ * ta_makedir()
+ *
+ * Utility routine to create a directory.  If the directory
+ * already exists, does nothing.
+ *
+ * Returns -1 on error, 0 otherwise.
+ */
+
+static int ta_makedir(const char *path)
+{
+  struct stat stat_buf;
+  
+  /*
+   * Status the directory to see if it already exists.
+   */
+
+  if (stat(path, &stat_buf) == 0) {
+    return(0);
+  }
+  
+  /* this check seems to cause problems on Linux because errno is
+   * not set correctly after stat - dixon
+   *
+   * if (errno != ENOENT) {
+   *   return(-1); 
+   * }
+   */
+  
+  /*
+   * Directory doesn't exist, create it.
+   */
+
+  if (mkdir(path,
+	    S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0) {
+    /*
+     * failed
+     * check if dir has been made bu some other process
+     * in the mean time, in which case return success
+     */
+    if (stat(path, &stat_buf) == 0) {
+      return(0);
+    }
+    return(-1);
+  }
+  
+  return(0);
+}
+
+
+/********************************************************
+ * ta_makedir_recurse()
+ *
+ * Utility routine to create a directory recursively.
+ * If the directory already exists, does nothing.
+ * Otherwise it recurses through the path, making all
+ * needed directories.
+ *
+ * Returns -1 on error, 0 otherwise.
+ */
+
+static int ta_makedir_recurse(const char *path)
+{
+
+  char up_dir[MAX_PATH_LEN];
+  char *last_delim;
+  struct stat dir_stat;
+  int delim = PATH_DELIM[0];
+  
+  /*
+   * Status the directory to see if it already exists.
+   * '/' dir will always exist, so this stops the recursion
+   * automatically.
+   */
+  
+  if (stat(path, &dir_stat) == 0) {
+    return(0);
+  }
+  
+  /*
+   * create up dir - one up the directory tree -
+   * by searching for the previous delim and removing it
+   * from the string.
+   * If no delim, try to make the directory non-recursively.
+   */
+  
+  STRncopy(up_dir, path, MAX_PATH_LEN);
+  last_delim = strrchr(up_dir, delim);
+  if (last_delim == NULL) {
+    return (ta_makedir(up_dir));
+  }
+  *last_delim = '\0';
+  
+  /*
+   * make the up dir
+   */
+  
+  if (ta_makedir_recurse(up_dir)) {
+    return (-1);
+  }
+
+  /*
+   * make this dir
+   */
+
+  if (ta_makedir(path)) {
+    return(-1);
+  } else {
+    return(0);
+  }
+
+}
+
+/********************************************************
+ * ta_makedir_for_file()
+ *
+ * Utility routine to create a directory recursively,
+ * given a file path. The directory name is determined
+ * by stripping the file name off the end of the file path.
+ * If the directory already exists, does nothing.
+ * Otherwise it recurses through the path, making all
+ * needed directories.
+ *
+ * Returns -1 on error, 0 otherwise.
+ */
+
+static int ta_makedir_for_file(const char *file_path)
+{
+  
+  char *delim, *lastDelim;
+  int delimLen = strlen(PATH_DELIM);
+
+  /*
+   * get dir path from file path
+   */
+
+  delim = strstr(file_path, PATH_DELIM);
+  if (delim == NULL) {
+    /*
+     * no delim, so file goes in current directory
+     * no need to make dir
+     */
+    return 0;
+  }
+
+  lastDelim = delim; 
+  while (delim != NULL) {
+    delim = strstr(lastDelim + delimLen, PATH_DELIM);
+    if (delim != NULL) {
+      lastDelim = delim;
+    }
+  }
+
+  /*
+   * dir path extends to last delim
+   */
+
+  int dirPathLen = lastDelim - file_path;
+  char *dir_path = (char *) umalloc(dirPathLen + 1);
+  strncpy(dir_path, file_path, dirPathLen);
+  dir_path[dirPathLen] = '\0';
+
+  if (ta_makedir_recurse(dir_path)) {
+    free(dir_path);
+    return -1;
+  }
+
+  free(dir_path);
+  return 0;
+
+}
 

@@ -309,7 +309,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CFLAGS = -I. -I../includes -I../../../include -I$(prefix)/include \
-	-m32
+	-m32 -DNETCDF
 AM_FFLAGS = $(AM_CFLAGS)
 AM_CXXFLAGS = $(AM_CFLAGS)
 

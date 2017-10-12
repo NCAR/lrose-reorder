@@ -9,6 +9,7 @@ AM_CFLAGS += -I../includes
 AM_CFLAGS += -I../../../include
 AM_CFLAGS += -I$(prefix)/include
 AM_CFLAGS += -m32
+AM_CFLAGS += -DNETCDF
 
 AM_FFLAGS = $(AM_CFLAGS)
 AM_CXXFLAGS = $(AM_CFLAGS)
