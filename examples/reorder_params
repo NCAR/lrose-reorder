@@ -1,8 +1,8 @@
 RLONGITUDE:-121.67778; RLATITUDE:38.50111; RALTITUDE:0.0392;
 GLONGITUDE:-121.35588; GLATITUDE:38.90060; GALTITUDE:0.0000;
-OUTPUT:"/home/mdtest/reorder/data/output/reorder.cedric";
-NETCDF:"/home/mdtest/reorder/data/netcdf";
-DIRECTORY:"/home/mdtest/reorder/lrose-reorder/examples/dorade";
+OUTPUT:"/home/dixon/reorder/data/output/reorder.cedric";
+NETCDF:"/home/dixon/reorder/data/netcdf";
+DIRECTORY:"/home/dixon/reorder/lrose-reorder/examples/dorade";
 XMIN:-170.0; XMAX:120.0; YMIN:-100.0; YMAX:120.0;
 ZMIN:1.0; ZMAX:6.0;
 XSPACING:2.0; YSPACING:2.0; ZSPACING:1.0;

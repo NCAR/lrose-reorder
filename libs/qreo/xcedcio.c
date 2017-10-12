@@ -648,6 +648,7 @@ int cedopn_(char *name,  int *n, int *isize)
 	}
     
 	printf(" Real cedric file name is %s\n", a );
+        ta_makedir_for_file(a);
 	cedstrm = fopen( a, "w+" );
         if (cedstrm == NULL) {
           perror(a);
