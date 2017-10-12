@@ -1211,7 +1211,7 @@ static int ta_makedir_for_file(const char *file_path)
    */
 
   int dirPathLen = lastDelim - file_path;
-  char *dir_path = (char *) umalloc(dirPathLen + 1);
+  char *dir_path = (char *) malloc(dirPathLen + 1);
   strncpy(dir_path, file_path, dirPathLen);
   dir_path[dirPathLen] = '\0';
 
