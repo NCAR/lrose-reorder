@@ -1,4 +1,4 @@
-# Reorder
+# LROSE Reorder
 
 Reorder is a package for gridding ray-based radar data.
 
