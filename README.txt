@@ -13,6 +13,7 @@ run the following:
 
 yum install -y ftp git svn cvs scons \
   gcc gcc-c++ gcc-gfortran \
+  libgfortran.i686 libquadmath.i686 \
   glibc-devel.i686 libX11-devel.i686 libXext-devel.i686 \
   libtiff-devel.i686 libpng-devel.i686 \
   libstdc++-devel.i686 libtiff-devel.i686 \
@@ -23,18 +24,19 @@ On Debian, you need to run the following:
 
 
   /usr/bin/dpkg --add-architecture i386
-  aptitude update
+  apt-get update
 
 and use apt-get to install the following:
 
-  aptitude install libx11-6:i386 \
-                   libstdc++-4.9-dev:i386 \
-                   libpng12-dev:i386 \
-                   libx11-dev:i386 \
-                   libxext-dev:i386 \
-                   lib32stdc++-4.9-dev \
-                   libstdc++5:i386 \
-                   libstdc++6:i386
+  apt-get install libx11-6:i386 \
+                  libstdc++-4.9-dev:i386 \
+                  libquadmath0-dev:i386 \
+                  libpng12-dev:i386 \
+                  libx11-dev:i386 \
+                  libxext-dev:i386 \
+                  lib32stdc++-4.9-dev \
+                  libstdc++5:i386 \
+                  libstdc++6:i386
 
 Quickstart install - in ~/reorder
 =================================
