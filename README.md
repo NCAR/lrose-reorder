@@ -4,16 +4,6 @@ Reorder is a package for gridding ray-based radar data.
 
 Reorder was developed by Jay Miller at NCAR/MMM and NCAR/EOL.
 
-## Version
-
-The current version is 1.38-3.10 (LJM Jan 14, 2015)
-
-See the ChangeLog for release notes and details.
-
-## Introduction
-
-As part of this project, we have started with Reorder that has been used for a number of years by several members of the scientific community.  All aspects of Reorder are currently being scrutinized in order to more fully understand how exactly the current code is performing.  This effort is expected to lead to a decision to either modernize and overhaul Reorder or to abandon it entirely.  If the latter choice is made, then the necessary requirements for a replacement gridder will be identified with input from the user community and incorporated into a newly designed package, keeping in mind that its lifetime is expected to be 5-10 years.
-
 ## DOI
 
 The DOI for lrose-reorder is:
@@ -23,6 +13,16 @@ The DOI for lrose-reorder is:
 The DOI entry information is stored at:
 
 * [https://search.datacite.org/works/10.5065/fhb4-rh92](https://search.datacite.org/works/10.5065/fhb4-rh92)
+
+## Version
+
+The current version is 1.38-3.10 (LJM Jan 14, 2015)
+
+See the ChangeLog for release notes and details.
+
+## Introduction
+
+As part of this project, we have started with Reorder that has been used for a number of years by several members of the scientific community.  All aspects of Reorder are currently being scrutinized in order to more fully understand how exactly the current code is performing.  This effort is expected to lead to a decision to either modernize and overhaul Reorder or to abandon it entirely.  If the latter choice is made, then the necessary requirements for a replacement gridder will be identified with input from the user community and incorporated into a newly designed package, keeping in mind that its lifetime is expected to be 5-10 years.
 
 ## Gridding Scheme
 
